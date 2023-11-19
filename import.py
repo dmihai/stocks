@@ -8,7 +8,7 @@ import yfinance as yf
 
 from utils.Database import Database
 
-db_file = 'stocks.sqlite3'
+db_file = 'data/stocks.sqlite3'
 history_start = '1995-01-01'
 wait_time = 2
 
