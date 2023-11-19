@@ -1,0 +1,7 @@
+{
+  "logging": {
+    "output": "console",
+    "filename": "log-%(today)s",
+    "level": "INFO"
+  }
+}
