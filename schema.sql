@@ -22,3 +22,5 @@ CREATE TABLE history (
     dividends REAL,
     splits    REAL
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS symbol_date ON history (symbol, date);
