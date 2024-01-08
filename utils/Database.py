@@ -30,7 +30,7 @@ class Database:
     def insert_history(self, history):
         cursor = self._conn.cursor()
 
-        cursor.executemany("INSERT INTO history (symbol, date, open, high, low, close, volume, dividends, splits) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", history)
+        cursor.executemany("REPLACE INTO history (symbol, date, open, high, low, close, volume, dividends, splits) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", history)
         self._conn.commit()
     
     def update_symbol_history(self, symbol, history, history_start, history_end):
