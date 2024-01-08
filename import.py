@@ -1,3 +1,4 @@
+import argparse
 from datetime import date
 import json
 import logging
@@ -8,8 +9,8 @@ import yfinance as yf
 
 from utils.Database import Database
 
-db_file = 'data/stocks.sqlite3'
-history_start = '1995-01-01'
+default_db_file = 'data/stocks.sqlite3'
+default_history_start = '1995-01-01'
 wait_time = 2
 
 
@@ -34,8 +35,15 @@ def stop_script(signum=None, frame=None):
 config = get_config('config.json')
 config_logging(config['logging'])
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--dbfile', type=str, required=False, default=default_db_file,
+                    help='Choose the sqlite3 file')
+parser.add_argument('--startdate', type=str, required=False, default=default_history_start,
+                    help='Start date for stock history (2015-12-30)')
+args = parser.parse_args()
+
 db = Database()
-db.connect(db_file)
+db.connect(args.dbfile)
 
 is_running = True
 
@@ -54,7 +62,7 @@ while is_running:
     stock = yf.Ticker(res['symbol'])
 
     try:
-        df = stock.history(period='max', interval='1d', start=history_start)
+        df = stock.history(period='max', interval='1d', start=args.startdate)
         if df.size == 0:
             raise Exception('empty history')
 
