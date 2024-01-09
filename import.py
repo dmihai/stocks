@@ -55,7 +55,6 @@ while is_running:
 
     if res is None:
         logging.info('No more symbols to import.')
-        stop_script()
         break
     
     db.update_symbol_history(res['symbol'], 'yahoo', None, None)
