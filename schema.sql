@@ -8,7 +8,8 @@ CREATE TABLE stocks (
     status         TEXT,
     history        TEXT,
     history_start  TEXT,
-    history_end    TEXT
+    history_end    TEXT,
+    last_update    TEXT
 );
 
 CREATE TABLE history (

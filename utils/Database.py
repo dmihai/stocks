@@ -1,5 +1,8 @@
 import sqlite3
 
+from datetime import date
+
+
 class Database:
     def __del__(self):
         self._conn.close()
@@ -7,7 +10,7 @@ class Database:
     def connect(self, db_file):
         self._conn = sqlite3.connect(db_file)
     
-    def get_next_symbol(self):
+    def get_next_unpopulated_symbol(self):
         cursor = self._conn.cursor()
 
         query = "SELECT symbol, history_start, history_end\
@@ -27,6 +30,18 @@ class Database:
             "end": result[2]
         }
 
+    def get_next_symbols_for_update(self, limit: int):
+        cursor = self._conn.cursor()
+
+        query = "SELECT symbol, history_end\
+            FROM stocks\
+            WHERE status='Active' AND last_update<?\
+            ORDER BY history_end\
+            LIMIT ?"
+        cursor.execute(query, (self.today(), limit))
+
+        return cursor.fetchall()
+
     def insert_history(self, history):
         cursor = self._conn.cursor()
 
@@ -37,7 +52,10 @@ class Database:
         cursor = self._conn.cursor()
 
         query = "UPDATE stocks\
-            SET history = ?, history_start = ?, history_end = ?\
+            SET history = ?, history_start = ?, history_end = ?, last_update = ?\
             WHERE symbol = ?"
-        cursor.execute(query, (history, history_start, history_end, symbol))
+        cursor.execute(query, (history, history_start, history_end, self.today(), symbol))
         self._conn.commit()
+    
+    def today(self):
+        return str(date.today())

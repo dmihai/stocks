@@ -30,3 +30,14 @@ class Importer:
             logging.info(f"Imported {len(history)} entries for symbol {symbol} between {history[0][1]} and {history[-1][1]}")
         except Exception as e:
             logging.warning(f"Failed to import price history for symbol {symbol}: {e}")
+    
+    def update(self, items: list[tuple[str,str]]):
+        symbols = [item[0] for item in items]
+
+        startdates = [item[1] for item in items]
+        startdates.sort()
+        startdate = startdates[0]
+
+        stocks = yf.download(symbols, period='max', interval='1d', start=startdate, group_by='ticker')
+
+        print(stocks)

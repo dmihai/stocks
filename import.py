@@ -5,8 +5,6 @@ import logging
 import signal
 import time
 
-import yfinance as yf
-
 from utils.Database import Database
 from utils.Importer import Importer
 
@@ -61,7 +59,7 @@ signal.signal(signal.SIGTERM, stop_script)
 
 while is_running:
     if args.operation == 'populate':
-        res = db.get_next_symbol()
+        res = db.get_next_unpopulated_symbol()
 
         if res is None:
             logging.info('No more symbols to import.')
@@ -72,7 +70,14 @@ while is_running:
         time.sleep(wait_time)
 
     elif args.operation == 'update':
-        logging.error('Not implemented')
+        items = db.get_next_symbols_for_update(2)
+        
+        if len(items) == 0:
+            logging.info('No more symbols to update.')
+            break
+
+        importer.update(items)
+
         exit()
 
     elif args.operation == 'new_stocks':
