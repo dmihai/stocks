@@ -2,6 +2,7 @@ import argparse
 from datetime import date
 import json
 import logging
+import pandas as pd
 import signal
 import time
 
@@ -11,6 +12,7 @@ from utils.Importer import Importer
 default_db_file = 'data/stocks.sqlite3'
 default_history_start = '1995-01-01'
 wait_time = 2
+stocks_list_url = "https://www.alphavantage.co/query?function=LISTING_STATUS&apikey=demo"
 
 
 def get_config(file):
@@ -20,11 +22,15 @@ def get_config(file):
 
     return config
 
+
 def config_logging(config):
-    filename = config['filename'].replace("%(today)s", str(date.today())) if config['output'] == 'file' else None
+    filename = config['filename'].replace("%(today)s", str(
+        date.today())) if config['output'] == 'file' else None
     level = getattr(logging, config['level'].upper())
-    
-    logging.basicConfig(filename=filename, format="%(asctime)s - %(levelname)s - %(message)s", level=level)
+
+    logging.basicConfig(
+        filename=filename, format="%(asctime)s - %(levelname)s - %(message)s", level=level)
+
 
 def stop_script(signum=None, frame=None):
     global is_running
@@ -64,14 +70,14 @@ while is_running:
         if res is None:
             logging.info('No more symbols to import.')
             break
-        
+
         importer.populate(res['symbol'])
-        
+
         time.sleep(wait_time)
 
     elif args.operation == 'update':
         items = db.get_next_symbols_for_update(2)
-        
+
         if len(items) == 0:
             logging.info('No more symbols to update.')
             break
@@ -81,5 +87,10 @@ while is_running:
         exit()
 
     elif args.operation == 'new_stocks':
-        logging.error('Not implemented')
+        data = pd.read_csv(stocks_list_url)
+        data = data.query('symbol.notnull()')
+        count = db.insert_stocks(data.values.tolist())
+
+        logging.info(f"Inserted {count} new stocks.")
+
         exit()

@@ -9,7 +9,7 @@ class Database:
 
     def connect(self, db_file):
         self._conn = sqlite3.connect(db_file)
-    
+
     def get_next_unpopulated_symbol(self):
         cursor = self._conn.cursor()
 
@@ -45,17 +45,28 @@ class Database:
     def insert_history(self, history):
         cursor = self._conn.cursor()
 
-        cursor.executemany("REPLACE INTO history (symbol, date, open, high, low, close, volume, dividends, splits) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", history)
+        cursor.executemany(
+            "REPLACE INTO history (symbol, date, open, high, low, close, volume, dividends, splits) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", history)
         self._conn.commit()
-    
+
+    def insert_stocks(self, stocks):
+        cursor = self._conn.cursor()
+
+        cursor.executemany(
+            "REPLACE INTO stocks (symbol, name, exchange, asset_type, ipo_date, delisting_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)", stocks)
+        self._conn.commit()
+
+        return cursor.rowcount
+
     def update_symbol_history(self, symbol, history, history_start, history_end):
         cursor = self._conn.cursor()
 
         query = "UPDATE stocks\
             SET history = ?, history_start = ?, history_end = ?, last_update = ?\
             WHERE symbol = ?"
-        cursor.execute(query, (history, history_start, history_end, self.today(), symbol))
+        cursor.execute(query, (history, history_start,
+                       history_end, self.today(), symbol))
         self._conn.commit()
-    
+
     def today(self):
         return str(date.today())
