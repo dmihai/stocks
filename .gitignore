@@ -4,3 +4,5 @@ log-*
 *.sqlite3
 *.csv
 *.exe
+
+config.json

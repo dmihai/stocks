@@ -12,7 +12,6 @@ from utils.Importer import Importer
 default_db_file = 'data/stocks.sqlite3'
 default_history_start = '1995-01-01'
 wait_time = 1
-stocks_list_url = "https://www.alphavantage.co/query?function=LISTING_STATUS&apikey=demo"
 
 
 def get_config(file):
@@ -87,7 +86,10 @@ while is_running:
         exit()
 
     elif args.operation == 'new_stocks':
-        data = pd.read_csv(stocks_list_url)
+        alphavantage_url = f"{config['alphavantage']['url']}?apikey={config['alphavantage']['apikey']}"
+
+        new_stocks_url = f"{alphavantage_url}&function=LISTING_STATUS"
+        data = pd.read_csv(new_stocks_url)
         logging.info(f"Downloaded {len(data)} active stocks.")
 
         count = db.insert_stocks(data.values.tolist())

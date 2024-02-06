@@ -1,0 +1,11 @@
+{
+  "logging": {
+    "output": "console",
+    "filename": "log-%(today)s",
+    "level": "INFO"
+  },
+  "alphavantage": {
+    "url": "https://www.alphavantage.co/query",
+    "apikey": "demo"
+  }
+}
