@@ -52,8 +52,9 @@ class Database:
     def insert_stocks(self, stocks):
         cursor = self._conn.cursor()
 
-        cursor.executemany(
-            "REPLACE INTO stocks (symbol, name, exchange, asset_type, ipo_date, delisting_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)", stocks)
+        cursor.executemany("""INSERT OR IGNORE INTO stocks
+            (symbol, name, exchange, asset_type, ipo_date, delisting_date, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)""", stocks)
         self._conn.commit()
 
         return cursor.rowcount

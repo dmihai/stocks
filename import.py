@@ -11,7 +11,7 @@ from utils.Importer import Importer
 
 default_db_file = 'data/stocks.sqlite3'
 default_history_start = '1995-01-01'
-wait_time = 2
+wait_time = 1
 stocks_list_url = "https://www.alphavantage.co/query?function=LISTING_STATUS&apikey=demo"
 
 
@@ -88,9 +88,9 @@ while is_running:
 
     elif args.operation == 'new_stocks':
         data = pd.read_csv(stocks_list_url)
-        data = data.query('symbol.notnull()')
-        count = db.insert_stocks(data.values.tolist())
+        logging.info(f"Downloaded {len(data)} active stocks.")
 
-        logging.info(f"Inserted {count} new stocks.")
+        count = db.insert_stocks(data.values.tolist())
+        logging.info(f"Inserted {count} new active stocks in the DB.")
 
         exit()
