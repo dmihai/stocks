@@ -95,4 +95,12 @@ while is_running:
         count = db.insert_stocks(data.values.tolist())
         logging.info(f"Inserted {count} new active stocks in the DB.")
 
+        today = str(date.today())
+        delisted_stocks_url = f"{alphavantage_url}&function=LISTING_STATUS&date={today}&state=delisted"
+        data = pd.read_csv(delisted_stocks_url)
+        logging.info(f"Downloaded {len(data)} delisted stocks.")
+
+        count = db.insert_stocks(data.values.tolist())
+        logging.info(f"Inserted {count} new delisted stocks in the DB.")
+
         exit()
