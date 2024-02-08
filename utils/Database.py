@@ -35,7 +35,7 @@ class Database:
 
         query = "SELECT symbol, history_end\
             FROM stocks\
-            WHERE status='Active' AND last_update<?\
+            WHERE status='Active' AND history_start IS NOT NULL AND last_update<?\
             ORDER BY history_end\
             LIMIT ?"
         cursor.execute(query, (self.today(), limit))
@@ -62,11 +62,18 @@ class Database:
     def update_symbol_history(self, symbol, history, history_start, history_end):
         cursor = self._conn.cursor()
 
-        query = "UPDATE stocks\
-            SET history = ?, history_start = ?, history_end = ?, last_update = ?\
+        update_fields = "history = ?, history_end = ?, last_update = ?"
+        params = (history, history_end, self.today())
+        
+        if history_start is not None:
+            update_fields += ", history_start = ?"
+            params += (history_start,)
+        
+        query = f"UPDATE stocks\
+            SET {update_fields}\
             WHERE symbol = ?"
-        cursor.execute(query, (history, history_start,
-                       history_end, self.today(), symbol))
+        cursor.execute(query, params + (symbol,))
+        
         self._conn.commit()
 
     def today(self):

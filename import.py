@@ -12,6 +12,7 @@ from utils.Importer import Importer
 default_db_file = 'data/stocks.sqlite3'
 default_history_start = '1995-01-01'
 wait_time = 1
+update_group_count = 3
 
 
 def get_config(file):
@@ -75,15 +76,14 @@ while is_running:
         time.sleep(wait_time)
 
     elif args.operation == 'update':
-        items = db.get_next_symbols_for_update(2)
-
+        items = db.get_next_symbols_for_update(update_group_count)
         if len(items) == 0:
             logging.info('No more symbols to update.')
             break
 
         importer.update(items)
 
-        exit()
+        time.sleep(wait_time)
 
     elif args.operation == 'new_stocks':
         alphavantage_url = f"{config['alphavantage']['url']}?apikey={config['alphavantage']['apikey']}"
@@ -103,4 +103,4 @@ while is_running:
         count = db.insert_stocks(data.values.tolist())
         logging.info(f"Inserted {count} new delisted stocks in the DB.")
 
-        exit()
+        break
