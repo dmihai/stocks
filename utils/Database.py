@@ -15,9 +15,9 @@ class Database:
 
         query = "SELECT symbol, history_start, history_end\
             FROM stocks\
-            WHERE history is null AND symbol NOT LIKE '%-%'\
+            WHERE history is null AND symbol NOT LIKE '%-%' AND last_update<?\
             LIMIT 1"
-        cursor.execute(query)
+        cursor.execute(query, (self.today(),))
 
         result = cursor.fetchone()
 
