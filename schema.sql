@@ -21,7 +21,9 @@ CREATE TABLE history (
     close     REAL,
     volume    INTEGER,
     dividends REAL,
-    splits    REAL
+    splits    REAL,
+    PRIMARY KEY (
+        symbol,
+        date
+    )
 );
-
-CREATE UNIQUE INDEX IF NOT EXISTS symbol_date ON history (symbol, date);
