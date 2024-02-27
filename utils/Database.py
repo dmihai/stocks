@@ -62,12 +62,16 @@ class Database:
     def update_symbol_history(self, symbol, history, history_start, history_end):
         cursor = self._conn.cursor()
 
-        update_fields = "history = ?, history_end = ?, last_update = ?"
-        params = (history, history_end, self.today())
+        update_fields = "history = ?, last_update = ?"
+        params = (history, self.today())
         
         if history_start is not None:
             update_fields += ", history_start = ?"
             params += (history_start,)
+        
+        if history_end is not None:
+            update_fields += ", history_end = ?"
+            params += (history_end,)
         
         query = f"UPDATE stocks\
             SET {update_fields}\

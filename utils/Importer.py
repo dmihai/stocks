@@ -55,6 +55,8 @@ class Importer:
                 df_symbol = df[df['Ticker'] == symbol]
                 if len(df_symbol) > 0:
                     self._db.update_symbol_history(symbol, provider, None, df_symbol['Formatted Date'].max())
+                else:
+                    self._db.update_symbol_history(symbol, provider, None, None)
 
             logging.info(f"Updated {len(history)} entries for symbols {symbols}")
         except Exception as e:
