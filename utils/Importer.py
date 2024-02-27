@@ -1,5 +1,6 @@
 import logging
 
+import pandas as pd
 import yfinance as yf
 
 from utils.Database import Database
@@ -40,16 +41,22 @@ class Importer:
         startdates.sort()
         startdate = startdates[0]
 
+        columns = ['Ticker', 'Formatted Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Dividends', 'Stock Splits']
+
         try:
             df = yf.download(symbols, period='max', interval='1d', start=startdate, actions=True, progress=False, group_by='ticker')
-            df = df.stack(level=0).rename_axis(['Date', 'Ticker']).reset_index()
-            
-            df['Formatted Date'] = df['Date'].dt.strftime('%Y-%m-%d')
 
-            df = df[['Ticker', 'Formatted Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Dividends', 'Stock Splits']]
-            history = df.values.tolist()
-            
-            self._db.insert_history(history)
+            if len(df) > 0:
+                df = df.stack(level=0).rename_axis(['Date', 'Ticker']).reset_index()
+
+                df['Formatted Date'] = df['Date'].dt.strftime('%Y-%m-%d')
+
+                df = df[columns]
+                history = df.values.tolist()
+                
+                self._db.insert_history(history)
+            else:
+                df = pd.DataFrame(columns=columns)
 
             for symbol in symbols:
                 df_symbol = df[df['Ticker'] == symbol]
@@ -58,6 +65,6 @@ class Importer:
                 else:
                     self._db.update_symbol_history(symbol, provider, None, None)
 
-            logging.info(f"Updated {len(history)} entries for symbols {symbols}")
+            logging.info(f"Updated {len(df)} entries for symbols {symbols}")
         except Exception as e:
             logging.warning(f"Failed to update price history for symbols {symbols}: {e}")
