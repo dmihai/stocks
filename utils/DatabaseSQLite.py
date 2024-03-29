@@ -17,9 +17,9 @@ class DatabaseSQLite(Database):
 
         query = "SELECT symbol, history_start, history_end\
             FROM stocks\
-            WHERE history is null AND symbol NOT LIKE '%-%' AND last_update<?\
+            WHERE history IS NULL AND symbol NOT LIKE '%-%' AND last_update IS NULL\
             LIMIT 1"
-        cursor.execute(query, (self.today(),))
+        cursor.execute(query)
 
         result = cursor.fetchone()
 
