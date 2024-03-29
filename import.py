@@ -6,10 +6,10 @@ import pandas as pd
 import signal
 import time
 
-from utils.Database import Database
+from utils.DatabaseSQLite import DatabaseSQLite
 from utils.Importer import Importer
 
-default_db_file = 'data/stocks.sqlite3'
+default_db_file = 'data/sqlite/stocks.sqlite3'
 default_history_start = '1995-01-01'
 wait_time = 1
 update_group_count = 3
@@ -53,7 +53,7 @@ if args.operation not in {'populate', 'update', 'new_stocks'}:
     logging.error('Invalid operation')
     exit()
 
-db = Database()
+db = DatabaseSQLite()
 db.connect(args.dbfile)
 
 importer = Importer(db, args.startdate)
