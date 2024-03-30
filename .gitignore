@@ -6,5 +6,6 @@ log-*
 *.exe
 
 data/
+env/
 
 config.json
