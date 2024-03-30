@@ -8,7 +8,10 @@
   # "storage": {
   #   "provider": "mysql",
   #   "config": {
-  # 
+  #     "host": "localhost",
+  #     "user": "stocks",
+  #     "password": "stocks",
+  #     "database": "stocks",
   #   }
   # },
   "logging": {
