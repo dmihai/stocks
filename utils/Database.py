@@ -34,11 +34,11 @@ class Database(ABC):
     def get_next_symbols_for_update(self, limit: int):
         cursor = self._conn.cursor()
 
-        query = "SELECT symbol, history_end\
+        query = self._replace_markers("SELECT symbol, history_end\
             FROM stocks\
-            WHERE status='Active' AND history_start IS NOT NULL AND last_update<?\
+            WHERE status='Active' AND history_start IS NOT NULL AND last_update<%s\
             ORDER BY history_end\
-            LIMIT ?"
+            LIMIT %s")
         cursor.execute(query, (self.today(), limit))
 
         return cursor.fetchall()
@@ -46,8 +46,8 @@ class Database(ABC):
     def insert_history(self, history):
         cursor = self._conn.cursor()
 
-        cursor.executemany(
-            "REPLACE INTO history (symbol, date, open, high, low, close, volume, dividends, splits) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", history)
+        query = self._insert_history_query()
+        cursor.executemany(query, history)
         self._conn.commit()
 
     def insert_stocks(self, stocks):
@@ -62,20 +62,20 @@ class Database(ABC):
     def update_symbol_history(self, symbol, history, history_start, history_end):
         cursor = self._conn.cursor()
 
-        update_fields = "history = ?, last_update = ?"
+        update_fields = "history = %s, last_update = %s"
         params = (history, self.today())
         
         if history_start is not None:
-            update_fields += ", history_start = ?"
+            update_fields += ", history_start = %s"
             params += (history_start,)
         
         if history_end is not None:
-            update_fields += ", history_end = ?"
+            update_fields += ", history_end = %s"
             params += (history_end,)
         
-        query = f"UPDATE stocks\
+        query = self._replace_markers(f"UPDATE stocks\
             SET {update_fields}\
-            WHERE symbol = ?"
+            WHERE symbol = %s")
         cursor.execute(query, params + (symbol,))
         
         self._conn.commit()

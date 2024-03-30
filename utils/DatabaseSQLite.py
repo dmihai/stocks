@@ -14,3 +14,11 @@ class DatabaseSQLite(Database):
         return "INSERT OR IGNORE INTO stocks\
             (symbol, name, exchange, asset_type, ipo_date, delisting_date, status)\
             VALUES (?, ?, ?, ?, ?, ?, ?)"
+    
+    def _insert_history_query(self):
+        return "REPLACE INTO history\
+            (symbol, date, open, high, low, close, volume, dividends, splits)\
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    
+    def _replace_markers(self, query):
+        return query.replace('%s', '?')
