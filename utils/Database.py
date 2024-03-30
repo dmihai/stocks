@@ -8,7 +8,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def connect(self, db_file):
+    def connect(self, config):
         pass
 
     @abstractmethod

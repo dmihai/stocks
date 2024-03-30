@@ -9,8 +9,8 @@ class DatabaseSQLite(Database):
     def __del__(self):
         self._conn.close()
 
-    def connect(self, db_file):
-        self._conn = sqlite3.connect(db_file)
+    def connect(self, config):
+        self._conn = sqlite3.connect(config["db_file"])
 
     def get_next_unpopulated_symbol(self):
         cursor = self._conn.cursor()

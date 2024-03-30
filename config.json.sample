@@ -1,4 +1,16 @@
 {
+  "storage": {
+    "provider": "sqlite",
+    "config": {
+      "file": "data/sqlite/stocks.sqlite3"
+    }
+  },
+  # "storage": {
+  #   "provider": "mysql",
+  #   "config": {
+  # 
+  #   }
+  # },
   "logging": {
     "output": "console",
     "filename": "log-%(today)s",
