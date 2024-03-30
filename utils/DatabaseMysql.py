@@ -14,3 +14,8 @@ class DatabaseMysql(Database):
             password=config['password'],
             database=config['database']
         )
+    
+    def _insert_stocks_query(self):
+        return "INSERT IGNORE INTO stocks\
+            (symbol, name, exchange, asset_type, ipo_date, delisting_date, status)\
+            VALUES (?, ?, ?, ?, ?, ?, ?)"
