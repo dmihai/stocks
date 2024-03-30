@@ -1,7 +1,5 @@
 import sqlite3
 
-from datetime import date
-
 from utils.Database import Database
 
 

@@ -7,6 +7,7 @@ import signal
 import time
 
 from utils.DatabaseSQLite import DatabaseSQLite
+from utils.DatabaseMysql import DatabaseMysql
 from utils.Importer import Importer
 
 default_history_start = '1995-01-01'
@@ -35,6 +36,10 @@ def init_database(storage):
     db = None
     if storage['provider'] == 'sqlite':
         db = DatabaseSQLite()
+    elif storage['provider'] == 'mysql':
+        db = DatabaseMysql()
+    
+    if db is not None:
         db.connect(storage['config'])
 
     return db
