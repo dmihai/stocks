@@ -3,6 +3,7 @@ from datetime import date
 import json
 import logging
 import pandas as pd
+import numpy as np
 import signal
 import time
 
@@ -100,6 +101,7 @@ while is_running:
 
         new_stocks_url = f"{alphavantage_url}&function=LISTING_STATUS"
         data = pd.read_csv(new_stocks_url)
+        data = data.replace(np.nan, None)
         logging.info(f"Downloaded {len(data)} active stocks.")
 
         count = db.insert_stocks(data.values.tolist())
