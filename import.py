@@ -100,7 +100,7 @@ while is_running:
         alphavantage_url = f"{config['alphavantage']['url']}?apikey={config['alphavantage']['apikey']}"
 
         new_stocks_url = f"{alphavantage_url}&function=LISTING_STATUS"
-        data = pd.read_csv(new_stocks_url)
+        data = pd.read_csv(new_stocks_url, na_values='null', keep_default_na=False)
         data = data.replace(np.nan, None)
         logging.info(f"Downloaded {len(data)} active stocks.")
 
@@ -109,7 +109,7 @@ while is_running:
 
         today = str(date.today())
         delisted_stocks_url = f"{alphavantage_url}&function=LISTING_STATUS&date={today}&state=delisted"
-        data = pd.read_csv(delisted_stocks_url)
+        data = pd.read_csv(delisted_stocks_url, na_values='null', keep_default_na=False)
         data = data.replace(np.nan, None)
         logging.info(f"Downloaded {len(data)} delisted stocks.")
 
