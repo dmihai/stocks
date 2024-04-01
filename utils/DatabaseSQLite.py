@@ -10,15 +10,6 @@ class DatabaseSQLite(Database):
     def connect(self, config):
         self._conn = sqlite3.connect(config["db_file"])
     
-    def _insert_stocks_query(self):
-        return "INSERT OR IGNORE INTO stocks\
-            (symbol, name, exchange, asset_type, ipo_date, delisting_date, status)\
-            VALUES (?, ?, ?, ?, ?, ?, ?)"
-    
-    def _insert_history_query(self):
-        return "REPLACE INTO history\
-            (symbol, date, open, high, low, close, volume, dividends, splits)\
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
-    
-    def _replace_markers(self, query):
+    def _transform_query(self, query):
+        query = query.replace('INSERT IGNORE INTO', 'INSERT OR IGNORE INTO')
         return query.replace('%s', '?')

@@ -15,15 +15,5 @@ class DatabaseMysql(Database):
             database=config['database']
         )
     
-    def _insert_stocks_query(self):
-        return "INSERT IGNORE INTO stocks\
-            (symbol, name, exchange, asset_type, ipo_date, delisting_date, status)\
-            VALUES (%s, %s, %s, %s, %s, %s, %s)"
-    
-    def _insert_history_query(self):
-        return "REPLACE INTO history\
-            (symbol, date, open, high, low, close, volume, dividends, splits)\
-            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    
-    def _replace_markers(self, query):
+    def _transform_query(self, query):
         return query

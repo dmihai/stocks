@@ -14,10 +14,10 @@ class Database(ABC):
     def get_next_unpopulated_symbol(self):
         cursor = self._conn.cursor()
 
-        query = "SELECT symbol, history_start, history_end\
+        query = self._transform_query("SELECT symbol, history_start, history_end\
             FROM stocks\
             WHERE history IS NULL AND symbol NOT LIKE '%-%' AND last_update IS NULL\
-            LIMIT 1"
+            LIMIT 1")
         cursor.execute(query)
 
         result = cursor.fetchone()
@@ -34,7 +34,7 @@ class Database(ABC):
     def get_next_symbols_for_update(self, limit: int):
         cursor = self._conn.cursor()
 
-        query = self._replace_markers("SELECT symbol, history_end\
+        query = self._transform_query("SELECT symbol, history_end\
             FROM stocks\
             WHERE status='Active' AND history_start IS NOT NULL AND last_update<%s\
             ORDER BY history_end\
@@ -46,14 +46,18 @@ class Database(ABC):
     def insert_history(self, history):
         cursor = self._conn.cursor()
 
-        query = self._insert_history_query()
+        query = self._transform_query("REPLACE INTO history\
+            (symbol, date, open, high, low, close, volume, dividends, splits)\
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)")
         cursor.executemany(query, history)
         self._conn.commit()
 
     def insert_stocks(self, stocks):
         cursor = self._conn.cursor()
 
-        query = self._insert_stocks_query()
+        query = self._transform_query("INSERT IGNORE INTO stocks\
+            (symbol, name, exchange, asset_type, ipo_date, delisting_date, status)\
+            VALUES (%s, %s, %s, %s, %s, %s, %s)")
         cursor.executemany(query, stocks)
         self._conn.commit()
 
@@ -73,7 +77,7 @@ class Database(ABC):
             update_fields += ", history_end = %s"
             params += (history_end,)
         
-        query = self._replace_markers(f"UPDATE stocks\
+        query = self._transform_query(f"UPDATE stocks\
             SET {update_fields}\
             WHERE symbol = %s")
         cursor.execute(query, params + (symbol,))
