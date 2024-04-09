@@ -47,7 +47,9 @@ class Importer:
             df = yf.download(symbols, period='max', interval='1d', start=startdate, actions=True, progress=False, group_by='ticker')
 
             if len(df) > 0:
-                df = df.stack(level=0).rename_axis(['Date', 'Ticker']).reset_index()
+                df = pd.concat([gp.xs(idx, level=0, axis=1).assign(Ticker=idx) for idx, gp in df.groupby(level=0, axis=1)])
+                df=df.reset_index()
+                df=df.dropna(subset=['Open', 'High', 'Low', 'Close'], how='all')
 
                 df['Formatted Date'] = df['Date'].dt.strftime('%Y-%m-%d')
 
