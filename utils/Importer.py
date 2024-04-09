@@ -47,7 +47,7 @@ class Importer:
             df = yf.download(symbols, period='max', interval='1d', start=startdate, actions=True, progress=False, group_by='ticker')
 
             if len(df) > 0:
-                df = pd.concat([gp.xs(idx, level=0, axis=1).assign(Ticker=idx) for idx, gp in df.groupby(level=0, axis=1)])
+                df = pd.concat([df[ticker].assign(Ticker=ticker) for ticker in df.columns.levels[0]])
                 df=df.reset_index()
                 df=df.dropna(subset=['Open', 'High', 'Low', 'Close'], how='all')
 
