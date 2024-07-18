@@ -29,3 +29,16 @@ CREATE TABLE `history` (
 
 ALTER TABLE `history`
   ADD PRIMARY KEY (`symbol`,`date`);
+
+CREATE TABLE `history_month` (
+  `symbol` char(15) NOT NULL,
+  `date` date NOT NULL,
+  `open` double NOT NULL,
+  `high` double NOT NULL,
+  `low` double NOT NULL,
+  `close` double NOT NULL,
+  `volume` bigint(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+ALTER TABLE `history_month`
+  ADD PRIMARY KEY (`symbol`,`date`);
