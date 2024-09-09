@@ -3,11 +3,11 @@ package store
 import (
 	"fmt"
 
-	"github.com/dmihai/stocks/pkg/types"
+	"github.com/dmihai/stocks/pkg/data"
 )
 
-func (c *Conn) GetCandlesBetweenDates(days map[string]int) (map[string][]types.Candle, error) {
-	result := make(map[string][]types.Candle)
+func (c *Conn) GetCandlesBetweenDates(days map[string]int) (map[string][]data.Candle, error) {
+	result := make(map[string][]data.Candle)
 
 	start := "99999"
 	end := "0"
@@ -27,7 +27,7 @@ func (c *Conn) GetCandlesBetweenDates(days map[string]int) (map[string][]types.C
 	defer rows.Close()
 
 	for rows.Next() {
-		var candle types.Candle
+		var candle data.Candle
 		var symbol string
 		var date string
 
@@ -36,7 +36,7 @@ func (c *Conn) GetCandlesBetweenDates(days map[string]int) (map[string][]types.C
 		}
 
 		if _, ok := result[symbol]; !ok {
-			result[symbol] = make([]types.Candle, len(days))
+			result[symbol] = make([]data.Candle, len(days))
 		}
 
 		result[symbol][days[date]] = candle

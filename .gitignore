@@ -8,4 +8,6 @@ log-*
 data/
 env/
 
+!pkg/data/
+
 config.json

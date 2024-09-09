@@ -1,4 +1,4 @@
-package types
+package data
 
 type Candle struct {
 	Open   float64

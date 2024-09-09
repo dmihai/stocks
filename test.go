@@ -5,8 +5,8 @@ import (
 	"log"
 	"sort"
 
+	"github.com/dmihai/stocks/pkg/data"
 	"github.com/dmihai/stocks/pkg/store"
-	"github.com/dmihai/stocks/pkg/types"
 )
 
 func main() {
@@ -51,7 +51,7 @@ func main() {
 	fmt.Printf("symbols[10]: %s\n", symbols[10])
 	fmt.Printf("symbols[1000]: %s\n", symbols[1000])
 
-	gainers := make([]types.Gainer, len(symbols))
+	gainers := make([]data.Gainer, len(symbols))
 
 	intradayIndex := 450
 	candlesIndex := len(days) - 1
@@ -71,7 +71,7 @@ func main() {
 			percentChange = ((currentPrice / dailyPrice) - 1) * 100
 		}
 
-		gainer := types.Gainer{
+		gainer := data.Gainer{
 			Symbol:        symbol,
 			PercentChange: percentChange,
 		}
@@ -92,7 +92,7 @@ func main() {
 	}
 }
 
-func getSymbolMap(symbolsList ...map[string][]types.Candle) map[int]string {
+func getSymbolMap(symbolsList ...map[string][]data.Candle) map[int]string {
 	result := make(map[int]string)
 	includedSymbols := make(map[string]bool)
 	i := 0

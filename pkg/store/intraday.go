@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dmihai/stocks/pkg/types"
+	"github.com/dmihai/stocks/pkg/data"
 )
 
-func (c *Conn) GetIntradayCandles(day string) (map[string][]types.Candle, error) {
-	result := make(map[string][]types.Candle)
+func (c *Conn) GetIntradayCandles(day string) (map[string][]data.Candle, error) {
+	result := make(map[string][]data.Candle)
 
 	table := "intraday_" + strings.Replace(day, "-", "", -1)
 
@@ -30,7 +30,7 @@ func (c *Conn) GetIntradayCandles(day string) (map[string][]types.Candle, error)
 	defer rows.Close()
 
 	for rows.Next() {
-		var candle types.Candle
+		var candle data.Candle
 		var symbol string
 		var timestamp time.Time
 
@@ -39,7 +39,7 @@ func (c *Conn) GetIntradayCandles(day string) (map[string][]types.Candle, error)
 		}
 
 		if _, ok := result[symbol]; !ok {
-			result[symbol] = make([]types.Candle, length)
+			result[symbol] = make([]data.Candle, length)
 		}
 
 		index := int(math.Round(timestamp.Sub(*minTime).Minutes()))
