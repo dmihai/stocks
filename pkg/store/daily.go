@@ -6,19 +6,8 @@ import (
 	"github.com/dmihai/stocks/pkg/data"
 )
 
-func (c *Conn) GetCandlesBetweenDates(days map[string]int) (map[string][]data.Candle, error) {
-	result := make(map[string][]data.Candle)
-
-	start := "99999"
-	end := "0"
-	for day := range days {
-		if start > day {
-			start = day
-		}
-		if end < day {
-			end = day
-		}
-	}
+func (c *Conn) GetCandlesBetweenDates(start, end string) ([]data.Daily, error) {
+	result := make([]data.Daily, 0)
 
 	rows, err := c.db.Query("SELECT symbol, date, open, high, low, close, volume FROM daily WHERE date >= ? AND date <= ?", start, end)
 	if err != nil {
@@ -27,19 +16,13 @@ func (c *Conn) GetCandlesBetweenDates(days map[string]int) (map[string][]data.Ca
 	defer rows.Close()
 
 	for rows.Next() {
-		var candle data.Candle
-		var symbol string
-		var date string
+		var daily data.Daily
 
-		if err := rows.Scan(&symbol, &date, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Volume); err != nil {
+		if err := rows.Scan(&daily.Symbol, &daily.Day, &daily.Open, &daily.High, &daily.Low, &daily.Close, &daily.Volume); err != nil {
 			return nil, fmt.Errorf("scan failed in getCandlesBetweenDates %s - %s: %v", start, end, err)
 		}
 
-		if _, ok := result[symbol]; !ok {
-			result[symbol] = make([]data.Candle, len(days))
-		}
-
-		result[symbol][days[date]] = candle
+		result = append(result, daily)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("row error in getCandlesBetweenDates %s - %s: %v", start, end, err)

@@ -21,15 +21,27 @@ func main() {
 	}
 	fmt.Println("Connected!")
 
+	store := data.NewStore()
+
 	days, err := db.GetDaysBetweenDates("2024-07-26", "2024-08-08")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	candles, err := db.GetCandlesBetweenDates(days)
+	start, end := getStartAndEndDate(days)
+
+	daily, err := db.GetCandlesBetweenDates(start, end)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	err = store.PopulateDailyData(daily, days)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	candles := store.GetDailyData()
+
 	fmt.Printf("len(candles): %d\n", len(candles))
 	fmt.Printf("candles[AAPL][0]: %+v\n", candles["AAPL"][0])
 	fmt.Printf("candles[AAPL][1]: %+v\n", candles["AAPL"][1])
@@ -108,4 +120,19 @@ func getSymbolMap(symbolsList ...map[string][]data.Candle) map[int]string {
 	}
 
 	return result
+}
+
+func getStartAndEndDate(days map[string]int) (string, string) {
+	start := "99999"
+	end := "0"
+	for day := range days {
+		if start > day {
+			start = day
+		}
+		if end < day {
+			end = day
+		}
+	}
+
+	return start, end
 }

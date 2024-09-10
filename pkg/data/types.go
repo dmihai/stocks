@@ -8,6 +8,12 @@ type Candle struct {
 	Volume int
 }
 
+type Daily struct {
+	Symbol string
+	Day    string
+	Candle
+}
+
 type Gainer struct {
 	Symbol        string
 	PercentChange float64
