@@ -27,6 +27,7 @@ func (c *Conn) GetCandlesBetweenDates(start, end string) ([]data.Daily, error) {
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("row error in getCandlesBetweenDates %s - %s: %v", start, end, err)
 	}
+
 	return result, nil
 }
 

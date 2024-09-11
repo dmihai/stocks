@@ -3,64 +3,55 @@ package store
 import (
 	"database/sql"
 	"fmt"
-	"math"
 	"strings"
 	"time"
 
 	"github.com/dmihai/stocks/pkg/data"
 )
 
-func (c *Conn) GetIntradayCandles(day string) (map[string][]data.Candle, error) {
-	result := make(map[string][]data.Candle)
+func (c *Conn) GetIntradayCandles(day string, maxTime time.Time) ([]data.Intraday, error) {
+	result := make([]data.Intraday, 0)
 
-	table := "intraday_" + strings.Replace(day, "-", "", -1)
+	table := getTableForDay(day)
 
-	minTime, err := c.getMinTimestampForTable(table)
+	rows, err := c.db.Query("SELECT symbol, timestamp, close, volume FROM "+table+" WHERE timestamp < ?", maxTime)
 	if err != nil {
-		return nil, err
-	}
-
-	length := 10 * 60
-	maxTime := minTime.Add(time.Minute * 10 * 60)
-
-	rows, err := c.db.Query("SELECT symbol, timestamp, open, high, low, close, volume FROM "+table+" WHERE timestamp < ?", maxTime)
-	if err != nil {
-		return nil, fmt.Errorf("query failed in getIntradayCandles %s: %v", day, err)
+		return nil, fmt.Errorf("query failed in GetIntradayCandles %s max %v: %v", day, maxTime, err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var candle data.Candle
-		var symbol string
-		var timestamp time.Time
+		var price data.Intraday
 
-		if err := rows.Scan(&symbol, &timestamp, &candle.Open, &candle.High, &candle.Low, &candle.Close, &candle.Volume); err != nil {
-			return nil, fmt.Errorf("scan failed in getIntradayCandles %s: %v", day, err)
+		if err := rows.Scan(&price.Symbol, &price.Timestamp, &price.Price.Price, &price.Volume); err != nil {
+			return nil, fmt.Errorf("scan failed in GetIntradayCandles %s max %v: %v", day, maxTime, err)
 		}
 
-		if _, ok := result[symbol]; !ok {
-			result[symbol] = make([]data.Candle, length)
-		}
-
-		index := int(math.Round(timestamp.Sub(*minTime).Minutes()))
-		result[symbol][index] = candle
+		result = append(result, price)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("row error in getIntradayCandles %s: %v", day, err)
+		return nil, fmt.Errorf("row error in GetIntradayCandles %s max %v: %v", day, maxTime, err)
 	}
+
 	return result, nil
 }
 
-func (c *Conn) getMinTimestampForTable(table string) (*time.Time, error) {
+func (c *Conn) GetMinTimestampForDay(day string) (*time.Time, error) {
 	var minTime time.Time
+
+	table := getTableForDay(day)
 
 	row := c.db.QueryRow("SELECT MIN(timestamp) FROM " + table)
 	if err := row.Scan(&minTime); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("getMinTimestampForTable %s: no result", table)
+			return nil, fmt.Errorf("GetMinTimestampForDay %s: no result", day)
 		}
-		return nil, fmt.Errorf("getMinTimestampForTable %s: %v", table, err)
+		return nil, fmt.Errorf("GetMinTimestampForDay %s: %v", day, err)
 	}
 
 	return &minTime, nil
+}
+
+func getTableForDay(day string) string {
+	return "intraday_" + strings.Replace(day, "-", "", -1)
 }

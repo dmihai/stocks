@@ -4,13 +4,25 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"time"
 
 	"github.com/dmihai/stocks/pkg/data"
 	"github.com/dmihai/stocks/pkg/store"
 )
 
+const (
+	dbHost = "192.168.1.63:3306"
+	dbUser = "stocks"
+	dbPass = "stocks"
+	dbName = "stocks"
+
+	startDate   = "2024-07-26"
+	endDate     = "2024-08-08"
+	currentDate = "2024-08-09"
+)
+
 func main() {
-	db, err := store.NewConn("192.168.1.63:3306", "stocks", "stocks", "stocks")
+	db, err := store.NewConn(dbHost, dbUser, dbPass, dbName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -23,14 +35,12 @@ func main() {
 
 	store := data.NewStore()
 
-	days, err := db.GetDaysBetweenDates("2024-07-26", "2024-08-08")
+	days, err := db.GetDaysBetweenDates(startDate, endDate)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	start, end := getStartAndEndDate(days)
-
-	daily, err := db.GetCandlesBetweenDates(start, end)
+	daily, err := db.GetCandlesBetweenDates(startDate, endDate)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,10 +57,26 @@ func main() {
 	fmt.Printf("candles[AAPL][1]: %+v\n", candles["AAPL"][1])
 	fmt.Printf("candles[MSFT][0]: %+v\n", candles["MSFT"][0])
 
-	intraday, err := db.GetIntradayCandles("2024-08-09")
+	minTime, err := db.GetMinTimestampForDay(currentDate)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	store.UpdateIntradayMinTime(minTime)
+
+	maxTime := minTime.Add(time.Minute * 10 * 60)
+
+	intradayPrices, err := db.GetIntradayCandles(currentDate, maxTime)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = store.UpdateIntradayData(intradayPrices)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	intraday := store.GetIntradayData()
 	fmt.Printf("len(intraday): %d\n", len(intraday))
 	fmt.Printf("intraday[AAPL][300]: %+v\n", intraday["AAPL"][300])
 	fmt.Printf("intraday[AAPL][550]: %+v\n", intraday["AAPL"][550])
@@ -70,7 +96,7 @@ func main() {
 	for id, symbol := range symbols {
 		currentPrice := 0.0
 		if intradayPrices, ok := intraday[symbol]; ok {
-			currentPrice = intradayPrices[intradayIndex].Close
+			currentPrice = intradayPrices[intradayIndex].Price
 		}
 
 		dailyPrice := 0.0
@@ -104,35 +130,26 @@ func main() {
 	}
 }
 
-func getSymbolMap(symbolsList ...map[string][]data.Candle) map[int]string {
+func getSymbolMap(daily map[string][]data.Candle, intraday map[string][]data.Price) map[int]string {
 	result := make(map[int]string)
 	includedSymbols := make(map[string]bool)
 	i := 0
 
-	for _, symbols := range symbolsList {
-		for symbol := range symbols {
-			if _, ok := includedSymbols[symbol]; !ok {
-				result[i] = symbol
-				i += 1
-				includedSymbols[symbol] = true
-			}
+	for symbol := range daily {
+		if _, ok := includedSymbols[symbol]; !ok {
+			result[i] = symbol
+			i += 1
+			includedSymbols[symbol] = true
+		}
+	}
+
+	for symbol := range intraday {
+		if _, ok := includedSymbols[symbol]; !ok {
+			result[i] = symbol
+			i += 1
+			includedSymbols[symbol] = true
 		}
 	}
 
 	return result
-}
-
-func getStartAndEndDate(days map[string]int) (string, string) {
-	start := "99999"
-	end := "0"
-	for day := range days {
-		if start > day {
-			start = day
-		}
-		if end < day {
-			end = day
-		}
-	}
-
-	return start, end
 }

@@ -1,5 +1,7 @@
 package data
 
+import "time"
+
 type Candle struct {
 	Open   float64
 	High   float64
@@ -8,10 +10,21 @@ type Candle struct {
 	Volume int
 }
 
+type Price struct {
+	Price  float64
+	Volume int
+}
+
 type Daily struct {
 	Symbol string
 	Day    string
 	Candle
+}
+
+type Intraday struct {
+	Symbol    string
+	Timestamp time.Time
+	Price
 }
 
 type Gainer struct {
