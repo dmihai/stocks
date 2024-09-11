@@ -7,22 +7,26 @@ import (
 )
 
 type Store struct {
+	symbols         map[int]string
 	daily           map[string][]Candle
 	dailyDays       map[string]int
 	intraday        map[string][]Price
 	intradayIndex   int
 	intradayMinTime *time.Time
+	gainers         []Gainer
 }
 
 func NewStore() *Store {
 	return &Store{
+		symbols:       make(map[int]string),
+		daily:         make(map[string][]Candle),
+		intraday:      make(map[string][]Price),
 		intradayIndex: -1,
 	}
 }
 
 func (s *Store) PopulateDailyData(candles []Daily, days map[string]int) error {
 	s.dailyDays = days
-	s.daily = make(map[string][]Candle)
 
 	for _, candle := range candles {
 		if _, ok := s.daily[candle.Symbol]; !ok {
@@ -32,11 +36,9 @@ func (s *Store) PopulateDailyData(candles []Daily, days map[string]int) error {
 		s.daily[candle.Symbol][days[candle.Day]] = candle.Candle
 	}
 
-	return nil
-}
+	s.updateSymbolMap()
 
-func (s *Store) GetDailyData() map[string][]Candle {
-	return s.daily
+	return nil
 }
 
 func (s *Store) UpdateIntradayMinTime(minTime *time.Time) {
@@ -45,11 +47,10 @@ func (s *Store) UpdateIntradayMinTime(minTime *time.Time) {
 
 func (s *Store) UpdateIntradayData(prices []Intraday) error {
 	if s.intradayMinTime == nil {
-		return fmt.Errorf("intraday min time must be set before appending intraday data")
+		return fmt.Errorf("intraday min time must be set before updating intraday data")
 	}
 
 	length := 20 * 60 // 20h
-	s.intraday = make(map[string][]Price)
 
 	for _, price := range prices {
 		if _, ok := s.intraday[price.Symbol]; !ok {
@@ -64,9 +65,28 @@ func (s *Store) UpdateIntradayData(prices []Intraday) error {
 		}
 	}
 
+	s.updateSymbolMap()
+
 	return nil
 }
 
-func (s *Store) GetIntradayData() map[string][]Price {
-	return s.intraday
+func (s *Store) updateSymbolMap() {
+	includedSymbols := make(map[string]bool)
+	for _, symbol := range s.symbols {
+		includedSymbols[symbol] = true
+	}
+
+	for symbol := range s.daily {
+		if _, ok := includedSymbols[symbol]; !ok {
+			s.symbols[len(s.symbols)] = symbol
+			includedSymbols[symbol] = true
+		}
+	}
+
+	for symbol := range s.intraday {
+		if _, ok := includedSymbols[symbol]; !ok {
+			s.symbols[len(s.symbols)] = symbol
+			includedSymbols[symbol] = true
+		}
+	}
 }

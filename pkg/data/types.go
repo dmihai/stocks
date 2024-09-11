@@ -31,3 +31,9 @@ type Gainer struct {
 	Symbol        string
 	PercentChange float64
 }
+
+type TopGainer struct {
+	Gainer
+	Yesterday Candle
+	Current   Price
+}

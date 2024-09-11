@@ -12,11 +12,11 @@ type Conn struct {
 
 func NewConn(addr, user, pass, database string) (*Conn, error) {
 	cfg := mysql.Config{
-		User:                 "stocks",
-		Passwd:               "stocks",
+		User:                 user,
+		Passwd:               pass,
 		Net:                  "tcp",
-		Addr:                 "192.168.1.63:3306",
-		DBName:               "stocks",
+		Addr:                 addr,
+		DBName:               database,
 		AllowNativePasswords: true,
 		ParseTime:            true,
 	}
