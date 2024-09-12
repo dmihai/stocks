@@ -21,6 +21,7 @@ func NewStore() *Store {
 		symbols:       make(map[int]string),
 		daily:         make(map[string][]Candle),
 		intraday:      make(map[string][]Price),
+		gainers:       make([]Gainer, 0),
 		intradayIndex: -1,
 	}
 }

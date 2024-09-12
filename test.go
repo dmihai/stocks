@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/dmihai/stocks/pkg/api"
 	"github.com/dmihai/stocks/pkg/data"
 	"github.com/dmihai/stocks/pkg/store"
 )
@@ -18,6 +19,8 @@ const (
 	startDate   = "2024-07-26"
 	endDate     = "2024-08-08"
 	currentDate = "2024-08-09"
+
+	serverAddr = ":3000"
 )
 
 func main() {
@@ -73,10 +76,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	gainers := store.GetTopGainers(10)
-
-	fmt.Println("Top gainers:")
-	for _, gainer := range gainers {
-		fmt.Printf("%s (%f): yesterday[%+v] now[%+v]\n", gainer.Symbol, gainer.PercentChange, gainer.Yesterday, gainer.Current)
-	}
+	server := api.NewServer(serverAddr, store)
+	server.Start()
 }

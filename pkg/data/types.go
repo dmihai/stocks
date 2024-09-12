@@ -3,16 +3,16 @@ package data
 import "time"
 
 type Candle struct {
-	Open   float64
-	High   float64
-	Low    float64
-	Close  float64
-	Volume int
+	Open   float64 `json:"open"`
+	High   float64 `json:"high"`
+	Low    float64 `json:"low"`
+	Close  float64 `json:"close"`
+	Volume int     `json:"volume"`
 }
 
 type Price struct {
-	Price  float64
-	Volume int
+	Price  float64 `json:"price"`
+	Volume int     `json:"volume"`
 }
 
 type Daily struct {
@@ -28,12 +28,12 @@ type Intraday struct {
 }
 
 type Gainer struct {
-	Symbol        string
-	PercentChange float64
+	Symbol        string  `json:"symbol"`
+	PercentChange float64 `json:"percentChange"`
 }
 
 type TopGainer struct {
 	Gainer
-	Yesterday Candle
-	Current   Price
+	Yesterday Candle `json:"yesterday"`
+	Current   Price  `json:"current"`
 }
