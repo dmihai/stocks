@@ -20,7 +20,7 @@ const (
 	endDate     = "2024-08-08"
 	currentDate = "2024-08-09"
 
-	serverAddr = ":3000"
+	serverAddr = ":3100"
 )
 
 func main() {
