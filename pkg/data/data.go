@@ -8,23 +8,25 @@ import (
 )
 
 type Store struct {
-	mu              sync.RWMutex
-	symbols         map[int]string
-	daily           map[string][]Candle
-	dailyDays       map[string]int
-	intraday        map[string][]Price
-	intradayIndex   int
-	intradayMinTime *time.Time
-	gainers         []Gainer
+	mu                sync.RWMutex
+	symbols           map[int]string
+	daily             map[string][]Candle
+	dailyDays         map[string]int
+	intraday          map[string][]Price
+	intradayLastIndex map[string]int
+	intradayIndex     int
+	intradayMinTime   *time.Time
+	gainers           []Gainer
 }
 
 func NewStore() *Store {
 	return &Store{
-		symbols:       make(map[int]string),
-		daily:         make(map[string][]Candle),
-		intraday:      make(map[string][]Price),
-		gainers:       make([]Gainer, 0),
-		intradayIndex: -1,
+		symbols:           make(map[int]string),
+		daily:             make(map[string][]Candle),
+		intraday:          make(map[string][]Price),
+		intradayLastIndex: make(map[string]int),
+		gainers:           make([]Gainer, 0),
+		intradayIndex:     -1,
 	}
 }
 
@@ -74,6 +76,11 @@ func (s *Store) UpdateIntradayData(prices []Intraday) error {
 
 		if index > s.intradayIndex {
 			s.intradayIndex = index
+		}
+
+		_, ok := s.intradayLastIndex[price.Symbol]
+		if !ok || s.intradayLastIndex[price.Symbol] < index {
+			s.intradayLastIndex[price.Symbol] = index
 		}
 	}
 

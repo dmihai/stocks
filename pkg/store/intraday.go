@@ -14,7 +14,7 @@ func (c *Conn) GetIntradayCandles(day string, maxTime time.Time) ([]data.Intrada
 
 	table := getTableForDay(day)
 
-	rows, err := c.db.Query("SELECT symbol, timestamp, close, volume FROM "+table+" WHERE timestamp < ?", maxTime)
+	rows, err := c.db.Query("SELECT symbol, timestamp, close, volume FROM "+table+" WHERE timestamp < ? ORDER BY symbol, timestamp", maxTime)
 	if err != nil {
 		return nil, fmt.Errorf("query failed in GetIntradayCandles %s max %v: %v", day, maxTime, err)
 	}

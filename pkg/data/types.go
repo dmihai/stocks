@@ -30,6 +30,7 @@ type Intraday struct {
 type Gainer struct {
 	Symbol        string  `json:"symbol"`
 	PercentChange float64 `json:"percentChange"`
+	intradayIndex int
 }
 
 type TopGainer struct {
