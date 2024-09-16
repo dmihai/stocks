@@ -6,9 +6,12 @@ function App() {
   const [topGainers, setTopGainers] = useState<TopGainer[]>([]);
 
   useEffect(() => {
-    getTopGainers()
-      .then((response) => setTopGainers(response))
-      .catch((err) => console.log(err));
+    const intervalId = setInterval(() => {
+      const res = getTopGainers();
+      res.then((response) => setTopGainers(response));
+    }, 1000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   return (

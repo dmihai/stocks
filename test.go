@@ -59,22 +59,28 @@ func main() {
 
 	store.UpdateIntradayMinTime(minTime)
 
-	maxTime := minTime.Add(time.Minute * 10 * 60)
+	go func() {
+		for i := 1; i < 20*60; i++ {
+			maxTime := minTime.Add(time.Minute * time.Duration(i))
 
-	intradayPrices, err := db.GetIntradayCandles(currentDate, maxTime)
-	if err != nil {
-		log.Fatal(err)
-	}
+			intradayPrices, err := db.GetIntradayCandles(currentDate, maxTime)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-	err = store.UpdateIntradayData(intradayPrices)
-	if err != nil {
-		log.Fatal(err)
-	}
+			err = store.UpdateIntradayData(intradayPrices)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-	err = store.ComputeGainers()
-	if err != nil {
-		log.Fatal(err)
-	}
+			err = store.ComputeGainers()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			time.Sleep(time.Millisecond * 500)
+		}
+	}()
 
 	server := api.NewServer(serverAddr, store)
 	server.Start()
