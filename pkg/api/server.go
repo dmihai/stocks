@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/dmihai/stocks/pkg/data"
@@ -28,6 +29,7 @@ func (s *Server) Start() {
 
 func (s *Server) setupRouter() *gin.Engine {
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	r.GET("/ping", ping)
 	r.GET("/top-gainers", s.getTopGainers)
