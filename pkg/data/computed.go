@@ -3,6 +3,9 @@ package data
 import "sort"
 
 func (s *Store) ComputeGainers() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.gainers = make([]Gainer, len(s.symbols))
 
 	candlesIndex := len(s.dailyDays) - 1
@@ -37,6 +40,9 @@ func (s *Store) ComputeGainers() error {
 }
 
 func (s *Store) GetTopGainers(count int) []TopGainer {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	result := make([]TopGainer, count)
 
 	for i := 0; i < count && i < len(s.gainers); i++ {

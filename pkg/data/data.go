@@ -3,10 +3,12 @@ package data
 import (
 	"fmt"
 	"math"
+	"sync"
 	"time"
 )
 
 type Store struct {
+	mu              sync.RWMutex
 	symbols         map[int]string
 	daily           map[string][]Candle
 	dailyDays       map[string]int
@@ -27,6 +29,9 @@ func NewStore() *Store {
 }
 
 func (s *Store) PopulateDailyData(candles []Daily, days map[string]int) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.dailyDays = days
 
 	for _, candle := range candles {
@@ -43,10 +48,16 @@ func (s *Store) PopulateDailyData(candles []Daily, days map[string]int) error {
 }
 
 func (s *Store) UpdateIntradayMinTime(minTime *time.Time) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.intradayMinTime = minTime
 }
 
 func (s *Store) UpdateIntradayData(prices []Intraday) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if s.intradayMinTime == nil {
 		return fmt.Errorf("intraday min time must be set before updating intraday data")
 	}
