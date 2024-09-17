@@ -33,7 +33,7 @@ function App() {
           {topGainers.map((topGainer) => (
             <tr>
               <td>{topGainer.symbol}</td>
-              <td className="text-end">{Math.round(topGainer.percentChange)}</td>
+              <td className="text-end">{Math.round(topGainer.percentChanged)}</td>
               <td className="text-end">{topGainer.yesterday.close}</td>
               <td className="text-end">{topGainer.yesterday.volume}</td>
               <td className="text-end">{topGainer.current.price}</td>

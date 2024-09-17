@@ -26,21 +26,21 @@ func (s *Store) ComputeGainers() error {
 			dailyPrice = candlePrices[candlesIndex].Close
 		}
 
-		percentChange := 0.0
+		percentChanged := 0.0
 		if dailyPrice != 0 {
-			percentChange = ((currentPrice / dailyPrice) - 1) * 100
+			percentChanged = ((currentPrice / dailyPrice) - 1) * 100
 		}
 
 		gainer := Gainer{
-			Symbol:        symbol,
-			PercentChange: percentChange,
-			intradayIndex: lastIndex,
+			Symbol:         symbol,
+			PercentChanged: percentChanged,
+			intradayIndex:  lastIndex,
 		}
 		s.gainers[id] = gainer
 	}
 
 	sort.Slice(s.gainers, func(i, j int) bool {
-		return s.gainers[i].PercentChange > s.gainers[j].PercentChange
+		return s.gainers[i].PercentChanged > s.gainers[j].PercentChanged
 	})
 
 	return nil

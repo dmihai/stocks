@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export type TopGainer = {
     symbol: string;
-    percentChange: number;
+    percentChanged: number;
     yesterday: {
         open: number;
         high: number;
