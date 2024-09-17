@@ -1,6 +1,9 @@
 package data
 
-import "sort"
+import (
+	"sort"
+	"time"
+)
 
 func (s *Store) ComputeGainers() error {
 	s.mu.Lock()
@@ -54,9 +57,10 @@ func (s *Store) GetTopGainers(count int) []TopGainer {
 		intradayIndex := s.gainers[i].intradayIndex
 
 		result[i] = TopGainer{
-			Gainer:    s.gainers[i],
-			Yesterday: s.daily[symbol][len(s.dailyDays)-1],
-			Current:   s.intraday[symbol][intradayIndex],
+			Gainer:      s.gainers[i],
+			Yesterday:   s.daily[symbol][len(s.dailyDays)-1],
+			Current:     s.intraday[symbol][intradayIndex],
+			LastUpdated: s.intradayMinTime.Add(time.Minute * time.Duration(intradayIndex)),
 		}
 	}
 

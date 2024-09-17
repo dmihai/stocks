@@ -35,6 +35,7 @@ type Gainer struct {
 
 type TopGainer struct {
 	Gainer
-	Yesterday Candle `json:"yesterday"`
-	Current   Price  `json:"current"`
+	Yesterday   Candle    `json:"yesterday"`
+	Current     Price     `json:"current"`
+	LastUpdated time.Time `json:"lastUpdated"`
 }

@@ -26,6 +26,7 @@ function App() {
             <th scope="col">yesterday volume</th>
             <th scope="col">current price</th>
             <th scope="col">current volume</th>
+            <th scope="col">last updated</th>
           </tr>
         </thead>
         <tbody>
@@ -37,6 +38,7 @@ function App() {
               <td className="text-end">{topGainer.yesterday.volume}</td>
               <td className="text-end">{topGainer.current.price}</td>
               <td className="text-end">{topGainer.current.volume}</td>
+              <td className="text-end">{topGainer.lastUpdated}</td>
             </tr>
           ))}
         </tbody>

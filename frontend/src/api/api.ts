@@ -14,6 +14,7 @@ export type TopGainer = {
         price: number;
         volume: number;
     }
+    lastUpdated: string;
 };
 
 const server = 'http://localhost:3100/';
