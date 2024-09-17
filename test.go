@@ -3,7 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"time"
+
+	"github.com/joho/godotenv"
 
 	"github.com/dmihai/stocks/pkg/api"
 	"github.com/dmihai/stocks/pkg/data"
@@ -11,20 +14,23 @@ import (
 )
 
 const (
-	dbHost = "192.168.1.63:3306"
-	dbUser = "stocks"
-	dbPass = "stocks"
-	dbName = "stocks"
-
 	startDate   = "2024-07-26"
 	endDate     = "2024-08-08"
 	currentDate = "2024-08-09"
-
-	serverAddr = ":3100"
 )
 
 func main() {
-	db, err := store.NewConn(dbHost, dbUser, dbPass, dbName)
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	db, err := store.NewConn(
+		os.Getenv("MYSQL_HOST"),
+		os.Getenv("MYSQL_USER"),
+		os.Getenv("MYSQL_PASS"),
+		os.Getenv("MYSQL_DB"),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -82,6 +88,6 @@ func main() {
 		}
 	}()
 
-	server := api.NewServer(serverAddr, store)
+	server := api.NewServer(os.Getenv("SERVER_ADDR"), store)
 	server.Start()
 }

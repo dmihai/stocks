@@ -12,3 +12,4 @@ node_modules/
 !pkg/data/
 
 config.json
+.env
