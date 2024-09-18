@@ -17,11 +17,10 @@ export type TopGainer = {
     lastUpdated: string;
 };
 
-const server = 'http://localhost:3100/';
-
 export async function getTopGainers() {
     try {
-        const response = await axios.get<TopGainer[]>(server + 'top-gainers');
+        const url = process.env.REACT_APP_API_ADDRESS + 'top-gainers';
+        const response = await axios.get<TopGainer[]>(url);
         return response.data;
     } catch (error) {
         console.error(error);
