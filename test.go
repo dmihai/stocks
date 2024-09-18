@@ -43,6 +43,8 @@ func main() {
 
 	store := data.NewStore()
 
+	startDaily := time.Now()
+
 	days, err := db.GetDaysBetweenDates(startDate, endDate)
 	if err != nil {
 		log.Fatal(err)
@@ -58,6 +60,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	elapsedDaily := time.Since(startDaily)
+	log.Printf("Daily load took %s", elapsedDaily)
+
 	minTime, err := db.GetMinTimestampForDay(currentDate)
 	if err != nil {
 		log.Fatal(err)
@@ -67,6 +72,8 @@ func main() {
 
 	go func() {
 		for i := 1; i < 20*60; i++ {
+			startIntraday := time.Now()
+
 			maxTime := minTime.Add(time.Minute * time.Duration(i))
 
 			intradayPrices, err := db.GetIntradayCandles(currentDate, maxTime)
@@ -83,6 +90,9 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			elapsedIntraday := time.Since(startIntraday)
+			log.Printf("Intraday load to %s took %s", maxTime, elapsedIntraday)
 
 			time.Sleep(time.Millisecond * 500)
 		}
