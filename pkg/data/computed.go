@@ -9,21 +9,20 @@ func (s *Store) ComputeGainers() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.gainers = make([]Gainer, len(s.symbols))
+	s.gainers = make([]Gainer, len(s.symbolNames))
 
 	candlesIndex := len(s.dailyDays) - 1
-	for id, symbol := range s.symbols {
+	for id, symbol := range s.symbolNames {
 		currentPrice := 0.0
-		lastIndex, ok := s.intradayLastIndex[symbol]
-		if ok {
-			if intradayPrice, ok := s.intraday[symbol]; ok {
-				currentPrice = intradayPrice[lastIndex].Price
-			}
+		lastIndex := 0
+		if id < len(s.intraday) {
+			lastIndex = s.intradayLastIndex[id]
+			currentPrice = s.intraday[id][lastIndex].Price
 		}
 
 		dailyPrice := 0.0
-		if candlePrices, ok := s.daily[symbol]; ok {
-			dailyPrice = candlePrices[candlesIndex].Close
+		if id < len(s.daily) {
+			dailyPrice = s.daily[id][candlesIndex].Close
 		}
 
 		percentChanged := 0.0
@@ -54,12 +53,13 @@ func (s *Store) GetTopGainers(count int) []TopGainer {
 
 	for i := 0; i < count && i < len(s.gainers); i++ {
 		symbol := s.gainers[i].Symbol
+		symbolID := s.symbolNameToID(symbol)
 		intradayIndex := s.gainers[i].intradayIndex
 
 		result[i] = TopGainer{
 			Gainer:      s.gainers[i],
-			Yesterday:   s.daily[symbol][len(s.dailyDays)-1],
-			Current:     s.intraday[symbol][intradayIndex],
+			Yesterday:   s.daily[symbolID][len(s.dailyDays)-1],
+			Current:     s.intraday[symbolID][intradayIndex],
 			LastUpdated: s.intradayMinTime.Add(time.Minute * time.Duration(intradayIndex)),
 		}
 	}
