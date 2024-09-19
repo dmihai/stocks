@@ -9,11 +9,12 @@ import (
 
 type Store struct {
 	mu                sync.RWMutex
-	symbols           map[int]string
-	daily             map[string][]Candle
+	symbolIDs         map[string]int
+	symbolNames       map[int]string
+	daily             [][]Candle
 	dailyDays         map[string]int
-	intraday          map[string][]Price
-	intradayLastIndex map[string]int
+	intraday          [][]Price
+	intradayLastIndex []int
 	intradayIndex     int
 	intradayMinTime   *time.Time
 	gainers           []Gainer
@@ -21,10 +22,11 @@ type Store struct {
 
 func NewStore() *Store {
 	return &Store{
-		symbols:           make(map[int]string),
-		daily:             make(map[string][]Candle),
-		intraday:          make(map[string][]Price),
-		intradayLastIndex: make(map[string]int),
+		symbolIDs:         make(map[string]int),
+		symbolNames:       make(map[int]string),
+		daily:             make([][]Candle, 0, 5000),
+		intraday:          make([][]Price, 0, 5000),
+		intradayLastIndex: make([]int, 0, 5000),
 		gainers:           make([]Gainer, 0),
 		intradayIndex:     -1,
 	}
@@ -37,14 +39,16 @@ func (s *Store) PopulateDailyData(candles []Daily, days map[string]int) error {
 	s.dailyDays = days
 
 	for _, candle := range candles {
-		if _, ok := s.daily[candle.Symbol]; !ok {
-			s.daily[candle.Symbol] = make([]Candle, len(days))
+		id := s.symbolNameToID(candle.Symbol)
+
+		if id > len(s.daily) {
+			return fmt.Errorf("invalid ID assigned to symbol %s in daily", candle.Symbol)
+		} else if id == len(s.daily) {
+			s.daily = append(s.daily, make([]Candle, len(days)))
 		}
 
-		s.daily[candle.Symbol][days[candle.Day]] = candle.Candle
+		s.daily[id][days[candle.Day]] = candle.Candle
 	}
-
-	s.updateSymbolMap()
 
 	return nil
 }
@@ -64,48 +68,54 @@ func (s *Store) UpdateIntradayData(prices []Intraday) error {
 		return fmt.Errorf("intraday min time must be set before updating intraday data")
 	}
 
+	s.intraday = make([][]Price, len(s.daily))
+	s.intradayLastIndex = make([]int, len(s.daily))
+
 	length := 20 * 60 // 20h
 
+	for i := range s.intraday {
+		s.intraday[i] = make([]Price, length)
+	}
+
 	for _, price := range prices {
-		if _, ok := s.intraday[price.Symbol]; !ok {
-			s.intraday[price.Symbol] = make([]Price, length)
+		id := s.symbolNameToID(price.Symbol)
+
+		if id > len(s.intraday) {
+			return fmt.Errorf("invalid ID assigned to symbol %s in intraday", price.Symbol)
+		} else if id == len(s.intraday) {
+			s.intraday = append(s.intraday, make([]Price, length))
+			s.intradayLastIndex = append(s.intradayLastIndex, 0)
 		}
 
 		index := int(math.Round(price.Timestamp.Sub(*s.intradayMinTime).Minutes()))
-		s.intraday[price.Symbol][index] = price.Price
+		s.intraday[id][index] = price.Price
 
 		if index > s.intradayIndex {
 			s.intradayIndex = index
 		}
 
-		_, ok := s.intradayLastIndex[price.Symbol]
-		if !ok || s.intradayLastIndex[price.Symbol] < index {
-			s.intradayLastIndex[price.Symbol] = index
+		if s.intradayLastIndex[id] < index {
+			s.intradayLastIndex[id] = index
 		}
 	}
-
-	s.updateSymbolMap()
 
 	return nil
 }
 
-func (s *Store) updateSymbolMap() {
-	includedSymbols := make(map[string]bool)
-	for _, symbol := range s.symbols {
-		includedSymbols[symbol] = true
+func (s *Store) symbolNameToID(name string) int {
+	// checks if symbol exists
+	if id, ok := s.symbolIDs[name]; ok {
+		return id
 	}
 
-	for symbol := range s.daily {
-		if _, ok := includedSymbols[symbol]; !ok {
-			s.symbols[len(s.symbols)] = symbol
-			includedSymbols[symbol] = true
-		}
-	}
+	// add new symbol
+	newID := len(s.symbolIDs)
+	s.symbolIDs[name] = newID
+	s.symbolNames[newID] = name
 
-	for symbol := range s.intraday {
-		if _, ok := includedSymbols[symbol]; !ok {
-			s.symbols[len(s.symbols)] = symbol
-			includedSymbols[symbol] = true
-		}
-	}
+	return newID
+}
+
+func (s *Store) symbolIDToName(id int) string {
+	return s.symbolNames[id]
 }
