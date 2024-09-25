@@ -6,17 +6,20 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
+	"github.com/dmihai/stocks/pkg/auth"
 	"github.com/dmihai/stocks/pkg/data"
 )
 
 type Server struct {
 	addr string
+	auth *auth.Auth
 	data *data.Store
 }
 
-func NewServer(addr string, data *data.Store) *Server {
+func NewServer(addr string, auth *auth.Auth, data *data.Store) *Server {
 	return &Server{
 		addr: addr,
+		auth: auth,
 		data: data,
 	}
 }
@@ -31,17 +34,31 @@ func (s *Server) setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.Use(cors.Default())
 
-	r.GET("/ping", ping)
+	r.POST("/login", gin.BasicAuth(s.auth.Accounts), s.login)
 	r.GET("/top-gainers", s.getTopGainers)
 
 	return r
 }
 
-func ping(c *gin.Context) {
-	c.String(http.StatusOK, "pong")
-}
-
 func (s *Server) getTopGainers(c *gin.Context) {
 	topGainers := s.data.GetTopGainers(20)
 	c.JSON(http.StatusOK, topGainers)
+}
+
+func (s *Server) login(c *gin.Context) {
+	user := c.GetString(gin.AuthUserKey)
+
+	token, err := s.auth.GenerateJWT(user)
+	if err != nil {
+		s.error(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"token": token,
+	})
+}
+
+func (s *Server) error(c *gin.Context, err error) {
+	c.AbortWithError(http.StatusInternalServerError, err)
 }

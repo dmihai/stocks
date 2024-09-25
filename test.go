@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/dmihai/stocks/pkg/api"
+	"github.com/dmihai/stocks/pkg/auth"
 	"github.com/dmihai/stocks/pkg/data"
 	"github.com/dmihai/stocks/pkg/store"
 )
@@ -98,6 +99,8 @@ func main() {
 		}
 	}()
 
-	server := api.NewServer(os.Getenv("SERVER_ADDR"), store)
+	authnz := auth.NewAuth()
+
+	server := api.NewServer(os.Getenv("SERVER_ADDR"), authnz, store)
 	server.Start()
 }
