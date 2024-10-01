@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -39,4 +40,22 @@ func (a *Auth) GenerateJWT(user string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString(a.jwtKey)
+}
+
+func (a *Auth) ParseJWT(reqToken string) (string, error) {
+	claims := &Claims{}
+	keyFunc := func(token *jwt.Token) (interface{}, error) {
+		return a.jwtKey, nil
+	}
+
+	token, err := jwt.ParseWithClaims(reqToken, claims, keyFunc)
+	if err != nil {
+		return "", err
+	}
+
+	if !token.Valid {
+		return "", fmt.Errorf("invalid token")
+	}
+
+	return claims.Username, nil
 }

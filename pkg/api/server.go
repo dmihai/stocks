@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -32,10 +33,15 @@ func (s *Server) Start() {
 
 func (s *Server) setupRouter() *gin.Engine {
 	r := gin.Default()
-	r.Use(cors.Default())
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AllowCredentials = true
+	corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, "Authorization")
+	r.Use(cors.New(corsConfig))
 
 	r.POST("/login", gin.BasicAuth(s.auth.Accounts), s.login)
-	r.GET("/top-gainers", s.getTopGainers)
+	r.GET("/top-gainers", s.validateAuth, s.getTopGainers)
 
 	return r
 }
@@ -43,6 +49,24 @@ func (s *Server) setupRouter() *gin.Engine {
 func (s *Server) getTopGainers(c *gin.Context) {
 	topGainers := s.data.GetTopGainers(20)
 	c.JSON(http.StatusOK, topGainers)
+}
+
+func (s *Server) validateAuth(c *gin.Context) {
+	bearerToken := c.Request.Header.Get("Authorization")
+	bearerTokenParts := strings.Split(bearerToken, " ")
+
+	if len(bearerTokenParts) != 2 || strings.ToLower(bearerTokenParts[0]) != "bearer" {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	username, err := s.auth.ParseJWT(bearerTokenParts[1])
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	c.Set(gin.AuthUserKey, username)
 }
 
 func (s *Server) login(c *gin.Context) {

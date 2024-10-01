@@ -1,12 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './Login.css';
+import { login } from '../api/api';
 
-function Login() {
+type Props = {
+  setToken: (token: string) => void;
+};
+
+function Login(props: Props) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = () => {
-    console.log(`The username you entered was: ${username}`);
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const res = login(username, password);
+    res.then((token) => {
+      console.log('token: ', token);
+      props.setToken(token);
+    });
   };
 
   return (
@@ -14,7 +24,7 @@ function Login() {
       <div id="login-row" className="row justify-content-center align-items-center">
         <div id="login-column" className="col-md-6">
           <div id="login-box" className="col-md-12">
-            <form id="login-form" onSubmit={handleSubmit} autoComplete="off" action="#">
+            <form id="login-form" onSubmit={handleSubmit} autoComplete="off">
               <h3 className="text-center text-info">Login</h3>
               <div className="mb-3">
                 <label htmlFor="username" className="form-label">
