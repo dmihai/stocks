@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/rand"
 	"fmt"
 	"os"
 	"time"
@@ -14,8 +15,9 @@ type Claims struct {
 }
 
 type Auth struct {
-	Accounts map[string]string
-	jwtKey   []byte
+	Accounts      map[string]string
+	refreshTokens map[string]string
+	jwtKey        []byte
 }
 
 func NewAuth() *Auth {
@@ -23,7 +25,8 @@ func NewAuth() *Auth {
 		Accounts: map[string]string{
 			"admin": os.Getenv("ADMIN_PASSWORD"),
 		},
-		jwtKey: []byte(os.Getenv("JWT_SECRET_KEY")),
+		refreshTokens: make(map[string]string),
+		jwtKey:        []byte(os.Getenv("JWT_SECRET_KEY")),
 	}
 }
 
@@ -58,4 +61,24 @@ func (a *Auth) ParseJWT(reqToken string) (string, error) {
 	}
 
 	return claims.Username, nil
+}
+
+func (a *Auth) GenerateRefreshToken(user string) string {
+	b := make([]byte, 32)
+	rand.Read(b)
+
+	token := fmt.Sprintf("%x", b)
+	a.refreshTokens[user] = token
+
+	return token
+}
+
+func (a *Auth) FindUserByRefreshToken(refreshToken string) *string {
+	for user, token := range a.refreshTokens {
+		if token == refreshToken {
+			return &user
+		}
+	}
+
+	return nil
 }

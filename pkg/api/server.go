@@ -11,6 +11,10 @@ import (
 	"github.com/dmihai/stocks/pkg/data"
 )
 
+const (
+	authKey = "auth"
+)
+
 type Server struct {
 	addr string
 	auth *auth.Auth
@@ -41,7 +45,8 @@ func (s *Server) setupRouter() *gin.Engine {
 	r.Use(cors.New(corsConfig))
 
 	r.POST("/login", gin.BasicAuth(s.auth.Accounts), s.login)
-	r.GET("/top-gainers", s.validateAuth, s.getTopGainers)
+	r.POST("/exchange", s.extractBearer, s.exchange, s.login)
+	r.GET("/top-gainers", s.extractBearer, s.validateAuth, s.getTopGainers)
 
 	return r
 }
@@ -51,7 +56,7 @@ func (s *Server) getTopGainers(c *gin.Context) {
 	c.JSON(http.StatusOK, topGainers)
 }
 
-func (s *Server) validateAuth(c *gin.Context) {
+func (s *Server) extractBearer(c *gin.Context) {
 	bearerToken := c.Request.Header.Get("Authorization")
 	bearerTokenParts := strings.Split(bearerToken, " ")
 
@@ -60,8 +65,26 @@ func (s *Server) validateAuth(c *gin.Context) {
 		return
 	}
 
-	username, err := s.auth.ParseJWT(bearerTokenParts[1])
+	c.Set(authKey, bearerTokenParts[1])
+}
+
+func (s *Server) validateAuth(c *gin.Context) {
+	token := c.GetString(authKey)
+
+	username, err := s.auth.ParseJWT(token)
 	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	c.Set(gin.AuthUserKey, username)
+}
+
+func (s *Server) exchange(c *gin.Context) {
+	refreshToken := c.GetString(authKey)
+
+	username := s.auth.FindUserByRefreshToken(refreshToken)
+	if username == nil {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
@@ -78,8 +101,11 @@ func (s *Server) login(c *gin.Context) {
 		return
 	}
 
+	refreshToken := s.auth.GenerateRefreshToken(user)
+
 	c.JSON(http.StatusOK, gin.H{
-		"token": token,
+		"token":        token,
+		"refreshToken": refreshToken,
 	})
 }
 
