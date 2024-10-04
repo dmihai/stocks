@@ -1,9 +1,15 @@
 import { createContext } from 'react';
 
-type AuthContextPayload = {
-    token: string;
-}
+export type AuthPayload = {
+  token: string | null;
+  refreshToken: string | null;
+  setToken: (token: string) => void;
+  setRefreshToken: (refreshToken: string) => void;
+};
 
-export const AuthContext = createContext<AuthContextPayload>({
-    token: '',
+export const AuthContext = createContext<AuthPayload>({
+  token: '',
+  refreshToken: '',
+  setToken: () => {},
+  setRefreshToken: () => {},
 });

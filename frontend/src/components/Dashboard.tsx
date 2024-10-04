@@ -1,14 +1,12 @@
 import { useState, useEffect, useContext } from 'react';
 import { getTopGainers, TopGainer } from '../api/api';
-import { AuthContext } from './AuthContext';
 
 function Dashboard() {
   const [topGainers, setTopGainers] = useState<TopGainer[]>([]);
-  const auth = useContext(AuthContext);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      const res = getTopGainers(auth.token);
+      const res = getTopGainers();
       res.then((response) => setTopGainers(response));
     }, 1000);
 

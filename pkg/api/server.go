@@ -46,7 +46,7 @@ func (s *Server) setupRouter() *gin.Engine {
 
 	r.POST("/login", gin.BasicAuth(s.auth.Accounts), s.login)
 	r.POST("/exchange", s.extractBearer, s.exchange, s.login)
-	r.GET("/top-gainers", s.extractBearer, s.validateAuth, s.getTopGainers)
+	r.GET("/api/top-gainers", s.extractBearer, s.validateAuth, s.getTopGainers)
 
 	return r
 }

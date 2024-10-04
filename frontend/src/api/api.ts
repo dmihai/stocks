@@ -1,62 +1,136 @@
 import axios from 'axios';
+import { getRefreshToken, getToken, saveRefreshToken, saveToken } from './auth';
 
 export type TopGainer = {
-    symbol: string;
-    percentChanged: number;
-    yesterday: {
-        open: number;
-        high: number;
-        low: number;
-        close: number;
-        volume: number;
-    }
-    current: {
-        price: number;
-        volume: number;
-    }
-    lastUpdated: string;
+  symbol: string;
+  percentChanged: number;
+  yesterday: {
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+  };
+  current: {
+    price: number;
+    volume: number;
+  };
+  lastUpdated: string;
 };
 
 type Login = {
-    token: string;
-}
+  token: string;
+  refreshToken: string;
+};
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_ADDRESS,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-function auth(token: string) {
-    return {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        }
-    };
-};
-
-export async function getTopGainers(token: string) {
-    try {
-        const response = await api.get<TopGainer[]>('top-gainers', auth(token));
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        return [];
+api.interceptors.request.use(
+  (config) => {
+    if (config.url && !config.url.includes('api/')) {
+      return config;
     }
+
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const response = await exchange();
+        const { token, refreshToken: newRefreshToken } = response;
+
+        saveToken(token);
+        saveRefreshToken(newRefreshToken);
+
+        api.defaults.headers.Authorization = `Bearer ${token}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+        return Promise.reject(refreshError);
+      }
+    }
+    return Promise.reject(error);
+  },
+);
+
+export async function getTopGainers() {
+  try {
+    const response = await api.get<TopGainer[]>('api/top-gainers');
+    return response.data;
+  } catch (error) {
+    if (!axios.isAxiosError(error) || error.status !== 401) {
+      console.error(error);
+    }
+    return [];
+  }
 }
 
 export async function login(username: string, password: string) {
-    try {
-        const response = await api.post<Login>('login', {}, {
-            auth: {
-              username: username,
-              password: password,
-            }
-          });
-        return response.data.token;
-    } catch (error) {
-        if (!axios.isAxiosError(error) || error.status != 401) {
-          console.error(error);
-        }
-
-        return "";
+  try {
+    const response = await api.post<Login>(
+      'login',
+      {},
+      {
+        auth: {
+          username: username,
+          password: password,
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    if (!axios.isAxiosError(error) || error.status !== 401) {
+      console.error(error);
     }
+
+    return {
+      token: '',
+      refreshToken: '',
+    };
+  }
+}
+
+export async function exchange() {
+  try {
+    const refreshToken = getRefreshToken();
+
+    const response = await api.post<Login>(
+      'exchange',
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${refreshToken}`,
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    if (!axios.isAxiosError(error) || error.status !== 401) {
+      console.error(error);
+    }
+
+    return {
+      token: '',
+      refreshToken: '',
+    };
+  }
 }

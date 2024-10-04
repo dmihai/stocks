@@ -2,25 +2,29 @@ import { Route, Routes } from 'react-router-dom';
 import './App.css';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
-import useToken from './api/auth';
+import { useToken } from './api/auth';
 import { AuthContext } from './components/AuthContext';
 
 function App() {
-  const { token, setToken } = useToken();
+  const { token, refreshToken, setToken, setRefreshToken } = useToken();
+
+  let app = (
+    <div className="App">
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </div>
+  );
 
   if (!token) {
-    return <Login setToken={setToken} />;
+    app = <Login />;
   }
 
   return (
-    <div className="App">
-      <AuthContext.Provider value={{ token }}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/login" element={<Login setToken={setToken} />} />
-        </Routes>
-      </AuthContext.Provider>
-    </div>
+    <AuthContext.Provider value={{ token, refreshToken, setToken, setRefreshToken }}>
+      {app}
+    </AuthContext.Provider>
   );
 }
 
