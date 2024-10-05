@@ -1,13 +1,13 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { getTopGainers, TopGainer } from '../api/api';
 
 function Dashboard() {
   const [topGainers, setTopGainers] = useState<TopGainer[]>([]);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      const res = getTopGainers();
-      res.then((response) => setTopGainers(response));
+    const intervalId = setInterval(async () => {
+      const response = await getTopGainers();
+      setTopGainers(response);
     }, 1000);
 
     return () => clearInterval(intervalId);

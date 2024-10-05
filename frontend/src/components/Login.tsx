@@ -1,20 +1,22 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import './Login.css';
 import { login } from '../api/api';
-import { AuthContext } from './AuthContext';
 
-function Login() {
+type LoginProps = {
+  setToken: (token: string) => void;
+  setRefreshToken: (refreshToken: string) => void;
+};
+
+function Login(props: LoginProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const auth = useContext(AuthContext);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    login(username, password).then((res) => {
-      auth.setToken(res.token);
-      auth.setRefreshToken(res.refreshToken);
-    });
+    const result = await login(username, password);
+    props.setToken(result.token);
+    props.setRefreshToken(result.refreshToken);
   };
 
   return (

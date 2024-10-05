@@ -3,28 +3,24 @@ import './App.css';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import { useToken } from './api/auth';
-import { AuthContext } from './components/AuthContext';
 
 function App() {
-  const { token, refreshToken, setToken, setRefreshToken } = useToken();
-
-  let app = (
-    <div className="App">
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/login" element={<Login />} />
-      </Routes>
-    </div>
-  );
+  const { token, setToken, setRefreshToken } = useToken();
 
   if (!token) {
-    app = <Login />;
+    return <Login setToken={setToken} setRefreshToken={setRefreshToken} />;
   }
 
   return (
-    <AuthContext.Provider value={{ token, refreshToken, setToken, setRefreshToken }}>
-      {app}
-    </AuthContext.Provider>
+    <div className="App">
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route
+          path="/login"
+          element={<Login setToken={setToken} setRefreshToken={setRefreshToken} />}
+        />
+      </Routes>
+    </div>
   );
 }
 

@@ -52,7 +52,11 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (
+      error.response.status === 401 &&
+      !originalRequest._retry &&
+      originalRequest.url.includes('api/')
+    ) {
       originalRequest._retry = true;
       try {
         const response = await exchange();
@@ -86,16 +90,14 @@ export async function getTopGainers() {
 
 export async function login(username: string, password: string) {
   try {
-    const response = await api.post<Login>(
-      'login',
-      {},
-      {
-        auth: {
-          username: username,
-          password: password,
-        },
+    const basicAuth = {
+      auth: {
+        username: username,
+        password: password,
       },
-    );
+    };
+
+    const response = await api.post<Login>('login', {}, basicAuth);
     return response.data;
   } catch (error) {
     if (!axios.isAxiosError(error) || error.status !== 401) {
@@ -112,16 +114,13 @@ export async function login(username: string, password: string) {
 export async function exchange() {
   try {
     const refreshToken = getRefreshToken();
-
-    const response = await api.post<Login>(
-      'exchange',
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${refreshToken}`,
-        },
+    const bearerAuth = {
+      headers: {
+        Authorization: `Bearer ${refreshToken}`,
       },
-    );
+    };
+
+    const response = await api.post<Login>('exchange', {}, bearerAuth);
     return response.data;
   } catch (error) {
     if (!axios.isAxiosError(error) || error.status !== 401) {
