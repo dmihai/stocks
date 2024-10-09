@@ -9,7 +9,7 @@ import (
 
 type Store struct {
 	mu                sync.RWMutex
-	symbols           map[int]string
+	symbols           []string
 	daily             map[string][]Candle
 	dailyDays         map[string]int
 	intraday          map[string][]Price
@@ -21,7 +21,7 @@ type Store struct {
 
 func NewStore() *Store {
 	return &Store{
-		symbols:           make(map[int]string),
+		symbols:           make([]string, 0),
 		daily:             make(map[string][]Candle),
 		intraday:          make(map[string][]Price),
 		intradayLastIndex: make(map[string]int),
@@ -97,14 +97,14 @@ func (s *Store) updateSymbolMap() {
 
 	for symbol := range s.daily {
 		if _, ok := includedSymbols[symbol]; !ok {
-			s.symbols[len(s.symbols)] = symbol
+			s.symbols = append(s.symbols, symbol)
 			includedSymbols[symbol] = true
 		}
 	}
 
 	for symbol := range s.intraday {
 		if _, ok := includedSymbols[symbol]; !ok {
-			s.symbols[len(s.symbols)] = symbol
+			s.symbols = append(s.symbols, symbol)
 			includedSymbols[symbol] = true
 		}
 	}

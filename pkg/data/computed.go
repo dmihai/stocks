@@ -12,7 +12,7 @@ func (s *Store) ComputeGainers() error {
 	s.gainers = make([]Gainer, len(s.symbols))
 
 	candlesIndex := len(s.dailyDays) - 1
-	for id, symbol := range s.symbols {
+	for i, symbol := range s.symbols {
 		currentPrice := 0.0
 		lastIndex, ok := s.intradayLastIndex[symbol]
 		if ok {
@@ -36,7 +36,7 @@ func (s *Store) ComputeGainers() error {
 			PercentChanged: percentChanged,
 			intradayIndex:  lastIndex,
 		}
-		s.gainers[id] = gainer
+		s.gainers[i] = gainer
 	}
 
 	sort.Slice(s.gainers, func(i, j int) bool {
