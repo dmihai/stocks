@@ -1,11 +1,22 @@
+import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import './App.css';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
-import { useToken } from './api/auth';
+import { getToken, useToken } from './api/auth';
 
 function App() {
   const { token, setToken, setRefreshToken } = useToken();
+
+  useEffect(() => {
+    const intervalId = setInterval(async () => {
+      if (getToken() === '') {
+        setToken('');
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   if (!token) {
     return <Login setToken={setToken} setRefreshToken={setRefreshToken} />;
