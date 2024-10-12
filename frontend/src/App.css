@@ -1,3 +1,7 @@
-.App {
+.app {
   text-align: left;
+}
+
+.data-table tbody > tr:last-child > td {
+  border-bottom:0;
 }

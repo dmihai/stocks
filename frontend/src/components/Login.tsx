@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import './Login.css';
 import { login } from '../api/api';
 
 type LoginProps = {
@@ -21,45 +20,51 @@ function Login(props: LoginProps) {
 
   return (
     <div className="container">
-      <div id="login-row" className="row justify-content-center align-items-center">
-        <div id="login-column" className="col-md-6">
-          <div id="login-box" className="col-md-12">
-            <form id="login-form" onSubmit={handleSubmit} autoComplete="off">
-              <h3 className="text-center text-info">Login</h3>
-              <div className="mb-3">
-                <label htmlFor="username" className="form-label">
-                  Username:
-                </label>
-                <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="mb-3">
-                <label htmlFor="password" className="form-label">
-                  Password:
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="form-control"
-                />
-              </div>
-              <div className="mb-3 form-check">
-                <input id="remember-me" type="checkbox" className="form-check-input" />
-                <label htmlFor="remember-me" className="form-check-label">
-                  Remember me
-                </label>
-              </div>
-              <div className="mb-3">
-                <input type="submit" className="btn btn-primary btn-md" value="Submit" />
-              </div>
-            </form>
+      <div className="row justify-content-center mt-5">
+        <div className="col-md-6">
+          <div className="card border-primary bg-light">
+            <h5 className="card-header bg-primary text-light">Login</h5>
+            <div className="card-body">
+              <form onSubmit={handleSubmit} autoComplete="off">
+                <div className="mb-3">
+                  <label htmlFor="username" className="form-label">
+                    Username:
+                  </label>
+                  <input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="form-control"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="password" className="form-label">
+                    Password:
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="form-control"
+                  />
+                </div>
+                <div className="mb-3 form-check">
+                  <input id="remember-me" type="checkbox" className="form-check-input" />
+                  <label htmlFor="remember-me" className="form-check-label">
+                    Remember me
+                  </label>
+                </div>
+                <div className="mb-3">
+                  <input
+                    type="submit"
+                    className="btn btn-primary btn-md"
+                    value="Submit"
+                  />
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>

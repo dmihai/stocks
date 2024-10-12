@@ -10,7 +10,7 @@ function App() {
 
   useEffect(() => {
     const intervalId = setInterval(async () => {
-      if (getToken() === '') {
+      if (!getToken()) {
         setToken('');
       }
     }, 1000);
@@ -23,7 +23,7 @@ function App() {
   }
 
   return (
-    <div className="App">
+    <div className="app">
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route

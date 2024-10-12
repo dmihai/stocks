@@ -1,14 +1,20 @@
 import { useState } from 'react';
-import LiveSwitch from './LiveSwitch';
 import TopGainers from './TopGainers';
+import Navbar from './Navbar';
 
 function Dashboard() {
   const [isLive, setLive] = useState(false);
 
   return (
     <div>
-      <LiveSwitch isLive={isLive} setLive={setLive} />
-      <TopGainers isLive={isLive} />
+      <Navbar isLive={isLive} setLive={setLive} />
+      <div className="container-fluid">
+        <div className="row mt-3">
+          <div className="col-6">
+            <TopGainers isLive={isLive} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
