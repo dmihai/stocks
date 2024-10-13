@@ -5,23 +5,33 @@ import (
 	"time"
 
 	"github.com/dmihai/stocks/pkg/data"
+	"github.com/dmihai/stocks/pkg/providers/fmp"
 	"github.com/dmihai/stocks/pkg/store"
 )
 
 type Scanner struct {
 	db    *store.Conn
 	store *data.Store
+	fmp   *fmp.Client
 }
 
-func NewScanner(db *store.Conn, store *data.Store) *Scanner {
+func NewScanner(db *store.Conn, store *data.Store, fmp *fmp.Client) *Scanner {
 	return &Scanner{
 		db:    db,
 		store: store,
+		fmp:   fmp,
 	}
 }
 
 func (s *Scanner) Start(startDate, endDate, currentDate string) error {
-	err := s.populateDailyData(startDate, endDate)
+	symbols, err := s.fmp.GetAvailableSymbolsByExchange(fmp.ExchangeNASDAQ)
+	if err != nil {
+		return err
+	}
+	log.Printf("symbols count: %d\n", len(symbols))
+	log.Printf("first symbol: %+v\n", symbols[0])
+
+	err = s.populateDailyData(startDate, endDate)
 	if err != nil {
 		return err
 	}
