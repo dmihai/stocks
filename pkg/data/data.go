@@ -7,26 +7,28 @@ import (
 	"time"
 )
 
+const (
+	estimatedSymbolsCount = 5000
+)
+
 type Store struct {
-	mu                sync.RWMutex
-	symbols           []string
-	daily             map[string][]Candle
-	dailyDays         map[string]int
-	intraday          map[string][]Price
-	intradayLastIndex map[string]int
-	intradayIndex     int
-	intradayMinTime   *time.Time
-	gainers           []Gainer
+	mu              sync.RWMutex
+	symbols         []Symbol
+	symbolIDs       map[string]int
+	daily           map[string][]Candle
+	dailyDays       map[string]int
+	intraday        map[string][]Price
+	intradayIndex   int
+	intradayMinTime *time.Time
 }
 
 func NewStore() *Store {
 	return &Store{
-		symbols:           make([]string, 0),
-		daily:             make(map[string][]Candle),
-		intraday:          make(map[string][]Price),
-		intradayLastIndex: make(map[string]int),
-		gainers:           make([]Gainer, 0),
-		intradayIndex:     -1,
+		symbols:       make([]Symbol, 0, estimatedSymbolsCount),
+		symbolIDs:     make(map[string]int, estimatedSymbolsCount),
+		daily:         make(map[string][]Candle, estimatedSymbolsCount),
+		intraday:      make(map[string][]Price, estimatedSymbolsCount),
+		intradayIndex: -1,
 	}
 }
 
@@ -42,9 +44,9 @@ func (s *Store) PopulateDailyData(candles []Daily, days map[string]int) error {
 		}
 
 		s.daily[candle.Symbol][days[candle.Day]] = candle.Candle
-	}
 
-	s.updateSymbolMap()
+		s.addSymbol(candle.Symbol)
+	}
 
 	return nil
 }
@@ -78,34 +80,48 @@ func (s *Store) UpdateIntradayData(prices []Intraday) error {
 			s.intradayIndex = index
 		}
 
-		_, ok := s.intradayLastIndex[price.Symbol]
-		if !ok || s.intradayLastIndex[price.Symbol] < index {
-			s.intradayLastIndex[price.Symbol] = index
+		symbolID := s.addSymbol(price.Symbol)
+		if s.symbols[symbolID].intradayIndex < index {
+			s.symbols[symbolID].intradayIndex = index
 		}
-	}
 
-	s.updateSymbolMap()
+		s.updateSymbol(symbolID)
+	}
 
 	return nil
 }
 
-func (s *Store) updateSymbolMap() {
-	includedSymbols := make(map[string]bool)
-	for _, symbol := range s.symbols {
-		includedSymbols[symbol] = true
+func (s *Store) addSymbol(symbol string) int {
+	// symbol already exists
+	if id, ok := s.symbolIDs[symbol]; ok {
+		return id
 	}
 
-	for symbol := range s.daily {
-		if _, ok := includedSymbols[symbol]; !ok {
-			s.symbols = append(s.symbols, symbol)
-			includedSymbols[symbol] = true
-		}
+	s.symbols = append(s.symbols, Symbol{
+		name:          symbol,
+		intradayIndex: -1,
+	})
+
+	newID := len(s.symbols) - 1
+	s.symbolIDs[symbol] = newID
+
+	return newID
+}
+
+func (s *Store) updateSymbol(symbolID int) {
+	symbol := s.symbols[symbolID]
+	currentPrice := s.intraday[symbol.name][symbol.intradayIndex].Price
+
+	lastDayClose := 0.0
+	candlesIndex := len(s.dailyDays) - 1
+	if candlePrices, ok := s.daily[symbol.name]; ok {
+		lastDayClose = candlePrices[candlesIndex].Close
 	}
 
-	for symbol := range s.intraday {
-		if _, ok := includedSymbols[symbol]; !ok {
-			s.symbols = append(s.symbols, symbol)
-			includedSymbols[symbol] = true
-		}
+	percentChanged := 0.0
+	if lastDayClose != 0 {
+		percentChanged = ((currentPrice / lastDayClose) - 1) * 100
 	}
+
+	s.symbols[symbolID].percentChanged = percentChanged
 }

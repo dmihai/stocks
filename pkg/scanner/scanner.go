@@ -51,11 +51,6 @@ func (s *Scanner) Start(startDate, endDate, currentDate string) error {
 			log.Fatal(err)
 		}
 
-		err = s.store.ComputeGainers()
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		time.Sleep(time.Millisecond * 500)
 	}
 

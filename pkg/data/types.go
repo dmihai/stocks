@@ -27,15 +27,21 @@ type Intraday struct {
 	Price
 }
 
-type Gainer struct {
-	Symbol         string  `json:"symbol"`
-	PercentChanged float64 `json:"percentChanged"`
+type Symbol struct {
+	name           string
+	percentChanged float64
 	intradayIndex  int
 }
 
+type SortGainer struct {
+	symbolID       int
+	percentChanged float64
+}
+
 type TopGainer struct {
-	Gainer
-	Yesterday   Candle    `json:"yesterday"`
-	Current     Price     `json:"current"`
-	LastUpdated time.Time `json:"lastUpdated"`
+	Symbol         string    `json:"symbol"`
+	PercentChanged float64   `json:"percentChanged"`
+	Yesterday      Candle    `json:"yesterday"`
+	Current        Price     `json:"current"`
+	LastUpdated    time.Time `json:"lastUpdated"`
 }
