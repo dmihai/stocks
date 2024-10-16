@@ -28,12 +28,14 @@ type Intraday struct {
 }
 
 type Symbol struct {
-	name           string
+	Name           string
+	PrevDayClose   float64
+	Shares         int
 	percentChanged float64
 	intradayIndex  int
 }
 
-type SortGainer struct {
+type Gainer struct {
 	symbolID       int
 	percentChanged float64
 }

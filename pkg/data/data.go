@@ -51,6 +51,19 @@ func (s *Store) PopulateDailyData(candles []Daily, days map[string]int) error {
 	return nil
 }
 
+func (s *Store) PopulateSymbols(symbols []Symbol) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for _, symbol := range symbols {
+		id := s.addSymbol(symbol.Name)
+		s.symbols[id].PrevDayClose = symbol.PrevDayClose
+		s.symbols[id].Shares = symbol.Shares
+	}
+
+	return nil
+}
+
 func (s *Store) UpdateIntradayMinTime(minTime *time.Time) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -69,11 +82,19 @@ func (s *Store) UpdateIntradayData(prices []Intraday) error {
 	length := 20 * 60 // 20h
 
 	for _, price := range prices {
+		if _, ok := s.symbolIDs[price.Symbol]; !ok {
+			continue
+		}
+
 		if _, ok := s.intraday[price.Symbol]; !ok {
 			s.intraday[price.Symbol] = make([]Price, length)
 		}
 
 		index := int(math.Round(price.Timestamp.Sub(*s.intradayMinTime).Minutes()))
+		if index < 0 {
+			continue
+		}
+
 		s.intraday[price.Symbol][index] = price.Price
 
 		if index > s.intradayIndex {
@@ -98,7 +119,7 @@ func (s *Store) addSymbol(symbol string) int {
 	}
 
 	s.symbols = append(s.symbols, Symbol{
-		name:          symbol,
+		Name:          symbol,
 		intradayIndex: -1,
 	})
 
@@ -110,13 +131,10 @@ func (s *Store) addSymbol(symbol string) int {
 
 func (s *Store) updateSymbol(symbolID int) {
 	symbol := s.symbols[symbolID]
-	currentPrice := s.intraday[symbol.name][symbol.intradayIndex].Price
+	currentPrice := s.intraday[symbol.Name][symbol.intradayIndex].Price
 
-	lastDayClose := 0.0
-	candlesIndex := len(s.dailyDays) - 1
-	if candlePrices, ok := s.daily[symbol.name]; ok {
-		lastDayClose = candlePrices[candlesIndex].Close
-	}
+	prevDayCandle := s.getPrevDayCandle(symbol)
+	lastDayClose := prevDayCandle.Close
 
 	percentChanged := 0.0
 	if lastDayClose != 0 {

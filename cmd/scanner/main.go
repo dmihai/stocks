@@ -9,8 +9,8 @@ import (
 	"github.com/dmihai/stocks/pkg/api"
 	"github.com/dmihai/stocks/pkg/auth"
 	"github.com/dmihai/stocks/pkg/data"
-	"github.com/dmihai/stocks/pkg/providers/fmp"
 	"github.com/dmihai/stocks/pkg/scanner"
+	"github.com/dmihai/stocks/pkg/stocks"
 	"github.com/dmihai/stocks/pkg/store"
 )
 
@@ -37,18 +37,20 @@ func main() {
 	}
 
 	store := data.NewStore()
-	fmp := fmp.NewClient(os.Getenv("FMP_API_URL"), os.Getenv("FMP_API_KEY"))
-	scan := scanner.NewScanner(db, store, fmp)
+	stocks := stocks.NewFMPClient(os.Getenv("FMP_API_URL"), os.Getenv("FMP_API_KEY"))
+	scan := scanner.NewScanner(db, store, stocks)
 
-	go func() {
-		err := scan.Start(startDate, endDate, currentDate)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
+	go startScanner(scan)
 
 	authnz := auth.NewAuth()
 
 	server := api.NewServer(os.Getenv("SERVER_ADDR"), authnz, store)
 	server.Start()
+}
+
+func startScanner(scan *scanner.Scanner) {
+	err := scan.Start(startDate, endDate, currentDate)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

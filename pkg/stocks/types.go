@@ -1,7 +1,14 @@
-package fmp
+package stocks
+
+import (
+	"encoding/json"
+	"time"
+)
 
 const (
 	ExchangeNASDAQ = "NASDAQ"
+	ExchangeNYSE   = "NYSE"
+	ExchangeAMEX   = "AMEX"
 )
 
 type StockSymbol struct {
@@ -19,4 +26,28 @@ type StockSymbol struct {
 	PreviousClose     float64 `json:"previousClose"`
 	Exchange          string  `json:"exchange"`
 	SharesOutstanding int     `json:"sharesOutstanding"`
+}
+
+type StockPrice struct {
+	Symbol      string    `json:"symbol"`
+	Price       float64   `json:"fmpLast"`
+	Volume      float64   `json:"volume"`
+	LastUpdated Timestamp `json:"lastUpdated"`
+}
+
+type Timestamp struct {
+	time.Time
+}
+
+func (p *Timestamp) UnmarshalJSON(bytes []byte) error {
+	var raw int64
+
+	err := json.Unmarshal(bytes, &raw)
+	if err != nil {
+		return err
+	}
+
+	p.Time = time.Unix(raw/1000, raw%1000)
+
+	return nil
 }
