@@ -37,14 +37,18 @@ func main() {
 	}
 
 	store := data.NewStore()
-	stocks := stocks.NewFMPClient(os.Getenv("FMP_API_URL"), os.Getenv("FMP_API_KEY"))
-	scan := scanner.NewScanner(db, store, stocks)
+
+	fmp := stocks.NewFMPClient(os.Getenv("FMP_API_URL"), os.Getenv("FMP_API_KEY"))
+	polygon := stocks.NewPolygonClient(os.Getenv("POLYGON_API_URL"), os.Getenv("POLYGON_API_KEY"))
+	stocksClient := stocks.NewHybridClient(fmp, polygon)
+
+	scan := scanner.NewScanner(db, store, stocksClient)
 
 	go startScanner(scan)
 
 	authnz := auth.NewAuth()
 
-	server := api.NewServer(os.Getenv("SERVER_ADDR"), authnz, store)
+	server := api.NewServer(os.Getenv("SERVER_ADDR"), authnz, store, stocksClient)
 	server.Start()
 }
 

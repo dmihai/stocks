@@ -17,7 +17,7 @@ type fmp struct {
 	client *http.Client
 }
 
-func NewFMPClient(apiURL string, apiKey string) Client {
+func NewFMPClient(apiURL string, apiKey string) *fmp {
 	client := &http.Client{
 		Timeout: 20 * time.Second,
 	}
@@ -110,17 +110,17 @@ func (s *fmp) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
 		return nil, err
 	}
 
-	var details FMPSymbolDetails
+	var details []FMPSymbolDetails
 	err = json.Unmarshal(responseBody, &details)
-	if err != nil {
+	if err != nil || len(details) == 0 {
 		return nil, err
 	}
 
 	return &SymbolDetails{
-		Symbol:   details.Symbol,
-		Name:     details.CompanyName,
-		Industry: details.Industry,
-		Sector:   details.Sector,
-		IpoDate:  details.IpoDate,
+		Symbol:   details[0].Symbol,
+		Name:     details[0].CompanyName,
+		Industry: details[0].Industry,
+		Sector:   details[0].Sector,
+		IpoDate:  details[0].IpoDate,
 	}, nil
 }

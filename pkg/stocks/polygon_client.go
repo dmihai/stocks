@@ -18,12 +18,12 @@ type polygon struct {
 	client *http.Client
 }
 
-func NewPolygonClient(apiURL string, apiKey string) Client {
+func NewPolygonClient(apiURL string, apiKey string) *polygon {
 	client := &http.Client{
 		Timeout: 20 * time.Second,
 	}
 
-	return &fmp{
+	return &polygon{
 		apiURL: apiURL,
 		apiKey: apiKey,
 		client: client,

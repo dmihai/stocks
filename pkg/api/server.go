@@ -9,6 +9,7 @@ import (
 
 	"github.com/dmihai/stocks/pkg/auth"
 	"github.com/dmihai/stocks/pkg/data"
+	"github.com/dmihai/stocks/pkg/stocks"
 )
 
 const (
@@ -16,16 +17,18 @@ const (
 )
 
 type Server struct {
-	addr string
-	auth *auth.Auth
-	data *data.Store
+	addr   string
+	auth   *auth.Auth
+	data   *data.Store
+	stocks stocks.Client
 }
 
-func NewServer(addr string, auth *auth.Auth, data *data.Store) *Server {
+func NewServer(addr string, auth *auth.Auth, data *data.Store, stocks stocks.Client) *Server {
 	return &Server{
-		addr: addr,
-		auth: auth,
-		data: data,
+		addr:   addr,
+		auth:   auth,
+		data:   data,
+		stocks: stocks,
 	}
 }
 
@@ -46,7 +49,9 @@ func (s *Server) setupRouter() *gin.Engine {
 
 	r.POST("/login", gin.BasicAuth(s.auth.Accounts), s.login)
 	r.POST("/exchange", s.extractBearer, s.exchange, s.login)
-	r.GET("/api/top-gainers", s.extractBearer, s.validateAuth, s.getTopGainers)
+	api := r.Group("/api", s.extractBearer, s.validateAuth)
+	api.GET("/top-gainers", s.getTopGainers)
+	api.GET("/symbol-details/:symbol", s.getSymbolDetails)
 
 	return r
 }
@@ -54,6 +59,18 @@ func (s *Server) setupRouter() *gin.Engine {
 func (s *Server) getTopGainers(c *gin.Context) {
 	topGainers := s.data.GetTopGainers(20)
 	c.JSON(http.StatusOK, topGainers)
+}
+
+func (s *Server) getSymbolDetails(c *gin.Context) {
+	symbol := c.Param("symbol")
+
+	details, err := s.stocks.GetSymbolDetails(symbol)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	c.JSON(http.StatusOK, details)
 }
 
 func (s *Server) extractBearer(c *gin.Context) {

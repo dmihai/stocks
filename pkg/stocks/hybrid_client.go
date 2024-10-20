@@ -1,13 +1,15 @@
 package stocks
 
-import "github.com/dmihai/stocks/pkg/data"
+import (
+	"github.com/dmihai/stocks/pkg/data"
+)
 
 type hybrid struct {
 	fmp     *fmp
 	polygon *polygon
 }
 
-func NewHybridClient(fmp *fmp, polygon *polygon) Client {
+func NewHybridClient(fmp *fmp, polygon *polygon) *hybrid {
 	return &hybrid{
 		fmp:     fmp,
 		polygon: polygon,
