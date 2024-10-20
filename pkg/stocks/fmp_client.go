@@ -10,11 +10,6 @@ import (
 	"github.com/dmihai/stocks/pkg/data"
 )
 
-type Client interface {
-	GetAvailableSymbolsByExchange(exchange string) ([]data.Symbol, error)
-	GetAllRealtimePrices() ([]data.Intraday, error)
-}
-
 type fmp struct {
 	apiURL string
 	apiKey string
@@ -48,7 +43,7 @@ func (s *fmp) GetAvailableSymbolsByExchange(exchange string) ([]data.Symbol, err
 		return nil, err
 	}
 
-	var symbolList []StockSymbol
+	var symbolList []FMPStockSymbol
 	err = json.Unmarshal(responseBody, &symbolList)
 	if err != nil {
 		return nil, err
@@ -80,7 +75,7 @@ func (s *fmp) GetAllRealtimePrices() ([]data.Intraday, error) {
 		return nil, err
 	}
 
-	var priceList []StockPrice
+	var priceList []FMPStockPrice
 	err = json.Unmarshal(responseBody, &priceList)
 	if err != nil {
 		return nil, err
@@ -99,4 +94,33 @@ func (s *fmp) GetAllRealtimePrices() ([]data.Intraday, error) {
 	}
 
 	return intradayList, nil
+}
+
+func (s *fmp) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
+	url := fmt.Sprintf("%s/v3/profile/%s?apikey=%s", s.apiURL, symbol, s.apiKey)
+
+	response, err := s.client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	responseBody, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var details FMPSymbolDetails
+	err = json.Unmarshal(responseBody, &details)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SymbolDetails{
+		Symbol:   details.Symbol,
+		Name:     details.CompanyName,
+		Industry: details.Industry,
+		Sector:   details.Sector,
+		IpoDate:  details.IpoDate,
+	}, nil
 }

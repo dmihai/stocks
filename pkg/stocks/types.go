@@ -11,7 +11,16 @@ const (
 	ExchangeAMEX   = "AMEX"
 )
 
-type StockSymbol struct {
+type SymbolDetails struct {
+	Symbol            string
+	Name              string
+	Industry          string
+	Sector            string
+	IpoDate           string
+	SharesOutstanding int
+}
+
+type FMPStockSymbol struct {
 	Symbol            string  `json:"symbol"`
 	Name              string  `json:"name"`
 	Price             float64 `json:"price"`
@@ -28,18 +37,39 @@ type StockSymbol struct {
 	SharesOutstanding int     `json:"sharesOutstanding"`
 }
 
-type StockPrice struct {
-	Symbol      string    `json:"symbol"`
-	Price       float64   `json:"fmpLast"`
-	Volume      float64   `json:"volume"`
-	LastUpdated Timestamp `json:"lastUpdated"`
+type FMPStockPrice struct {
+	Symbol      string        `json:"symbol"`
+	Price       float64       `json:"fmpLast"`
+	Volume      float64       `json:"volume"`
+	LastUpdated UnixTimestamp `json:"lastUpdated"`
 }
 
-type Timestamp struct {
+type FMPSymbolDetails struct {
+	Symbol      string `json:"symbol"`
+	CompanyName string `json:"companyName"`
+	Industry    string `json:"industry"`
+	Sector      string `json:"sector"`
+	IpoDate     string `json:"ipoDate"`
+}
+
+type PolygonResponse[T any] struct {
+	RequestID string `json:"request_id"`
+	Results   T      `json:"results"`
+	Status    string `json:"status"`
+}
+
+type PolygonSymbolDetails struct {
+	Symbol            string `json:"ticker"`
+	Name              string `json:"name"`
+	IpoDate           string `json:"list_date"`
+	SharesOutstanding int    `json:"weighted_shares_outstanding"`
+}
+
+type UnixTimestamp struct {
 	time.Time
 }
 
-func (p *Timestamp) UnmarshalJSON(bytes []byte) error {
+func (p *UnixTimestamp) UnmarshalJSON(bytes []byte) error {
 	var raw int64
 
 	err := json.Unmarshal(bytes, &raw)
