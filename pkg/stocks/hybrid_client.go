@@ -1,6 +1,8 @@
 package stocks
 
 import (
+	"golang.org/x/sync/errgroup"
+
 	"github.com/dmihai/stocks/pkg/data"
 )
 
@@ -25,13 +27,23 @@ func (h *hybrid) GetAllRealtimePrices() ([]data.Intraday, error) {
 }
 
 func (h *hybrid) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
-	fmpSymbol, err := h.fmp.GetSymbolDetails(symbol)
-	if err != nil {
-		return nil, err
-	}
+	g := errgroup.Group{}
 
-	polygonSymbol, err := h.polygon.GetSymbolDetails(symbol)
-	if err != nil {
+	var fmpSymbol *SymbolDetails
+	g.Go(func() error {
+		var err error
+		fmpSymbol, err = h.fmp.GetSymbolDetails(symbol)
+		return err
+	})
+
+	var polygonSymbol *SymbolDetails
+	g.Go(func() error {
+		var err error
+		polygonSymbol, err = h.polygon.GetSymbolDetails(symbol)
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
 		return nil, err
 	}
 
