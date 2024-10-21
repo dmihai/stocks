@@ -59,7 +59,7 @@ func (p *polygon) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
 	}, nil
 }
 
-func getPolygonResponse[T PolygonSymbolDetails](p *polygon, endpoint string) (*T, error) {
+func getPolygonResponse[T any](p *polygon, endpoint string) (*T, error) {
 	url := fmt.Sprintf("%s/%s", p.apiURL, endpoint)
 
 	request, err := http.NewRequest("GET", url, nil)
