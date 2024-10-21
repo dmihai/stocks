@@ -39,7 +39,28 @@ func (p *polygon) GetAllRealtimePrices() ([]data.Intraday, error) {
 }
 
 func (p *polygon) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
-	url := fmt.Sprintf("%s/v3/reference/tickers/%s", p.apiURL, symbol)
+	endpoint := fmt.Sprintf("v3/reference/tickers/%s", symbol)
+
+	details, err := getPolygonResponse[PolygonSymbolDetails](p, endpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO not found response
+	if details == nil {
+		return nil, err
+	}
+
+	return &SymbolDetails{
+		Symbol:            details.Symbol,
+		Name:              details.Name,
+		IpoDate:           details.IpoDate,
+		SharesOutstanding: details.SharesOutstanding,
+	}, nil
+}
+
+func getPolygonResponse[T PolygonSymbolDetails](p *polygon, endpoint string) (*T, error) {
+	url := fmt.Sprintf("%s/%s", p.apiURL, endpoint)
 
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -59,16 +80,11 @@ func (p *polygon) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
 		return nil, err
 	}
 
-	var details PolygonResponse[PolygonSymbolDetails]
-	err = json.Unmarshal(responseBody, &details)
+	var payload PolygonResponse[T]
+	err = json.Unmarshal(responseBody, &payload)
 	if err != nil {
 		return nil, err
 	}
 
-	return &SymbolDetails{
-		Symbol:            details.Results.Symbol,
-		Name:              details.Results.Name,
-		IpoDate:           details.Results.IpoDate,
-		SharesOutstanding: details.Results.SharesOutstanding,
-	}, nil
+	return &payload.Results, nil
 }

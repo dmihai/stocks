@@ -29,28 +29,21 @@ func NewFMPClient(apiURL string, apiKey string) *fmp {
 	}
 }
 
-func (s *fmp) GetAvailableSymbolsByExchange(exchange string) ([]data.Symbol, error) {
-	url := fmt.Sprintf("%s/v3/symbol/%s?apikey=%s", s.apiURL, exchange, s.apiKey)
+func (f *fmp) GetAvailableSymbolsByExchange(exchange string) ([]data.Symbol, error) {
+	endpoint := fmt.Sprintf("v3/symbol/%s", exchange)
 
-	response, err := s.client.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	responseBody, err := io.ReadAll(response.Body)
+	symbolList, err := getFMPResponse[[]FMPStockSymbol](f, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	var symbolList []FMPStockSymbol
-	err = json.Unmarshal(responseBody, &symbolList)
-	if err != nil {
+	// TODO not found response
+	if symbolList == nil || len(*symbolList) == 0 {
 		return nil, err
 	}
 
-	symbols := make([]data.Symbol, len(symbolList))
-	for i, symbol := range symbolList {
+	symbols := make([]data.Symbol, len(*symbolList))
+	for i, symbol := range *symbolList {
 		symbols[i] = data.Symbol{
 			Name:         symbol.Symbol,
 			PrevDayClose: symbol.PreviousClose,
@@ -61,28 +54,21 @@ func (s *fmp) GetAvailableSymbolsByExchange(exchange string) ([]data.Symbol, err
 	return symbols, nil
 }
 
-func (s *fmp) GetAllRealtimePrices() ([]data.Intraday, error) {
-	url := fmt.Sprintf("%s/v3/stock/full/real-time-price?apikey=%s", s.apiURL, s.apiKey)
+func (f *fmp) GetAllRealtimePrices() ([]data.Intraday, error) {
+	endpoint := "v3/stock/full/real-time-price"
 
-	response, err := s.client.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	responseBody, err := io.ReadAll(response.Body)
+	priceList, err := getFMPResponse[[]FMPStockPrice](f, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	var priceList []FMPStockPrice
-	err = json.Unmarshal(responseBody, &priceList)
-	if err != nil {
+	// TODO not found response
+	if priceList == nil || len(*priceList) == 0 {
 		return nil, err
 	}
 
-	intradayList := make([]data.Intraday, len(priceList))
-	for i, price := range priceList {
+	intradayList := make([]data.Intraday, len(*priceList))
+	for i, price := range *priceList {
 		intradayList[i] = data.Intraday{
 			Symbol:    price.Symbol,
 			Timestamp: price.LastUpdated.Time,
@@ -96,10 +82,42 @@ func (s *fmp) GetAllRealtimePrices() ([]data.Intraday, error) {
 	return intradayList, nil
 }
 
-func (s *fmp) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
-	url := fmt.Sprintf("%s/v3/profile/%s?apikey=%s", s.apiURL, symbol, s.apiKey)
+func (f *fmp) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
+	endpoint := fmt.Sprintf("v3/profile/%s", symbol)
 
-	response, err := s.client.Get(url)
+	details, err := getFMPResponse[[]FMPSymbolDetails](f, endpoint)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO not found response
+	if details == nil || len(*details) == 0 {
+		return nil, err
+	}
+
+	return &SymbolDetails{
+		Symbol:   (*details)[0].Symbol,
+		Name:     (*details)[0].CompanyName,
+		Industry: (*details)[0].Industry,
+		Sector:   (*details)[0].Sector,
+		IpoDate:  (*details)[0].IpoDate,
+	}, nil
+}
+
+func getFMPResponse[T any](f *fmp, endpoint string) (*T, error) {
+	url := fmt.Sprintf("%s/%s", f.apiURL, endpoint)
+
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	query := request.URL.Query()
+	query.Add("apikey", f.apiKey)
+
+	request.URL.RawQuery = query.Encode()
+
+	response, err := f.client.Do(request)
 	if err != nil {
 		return nil, err
 	}
@@ -110,17 +128,11 @@ func (s *fmp) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
 		return nil, err
 	}
 
-	var details []FMPSymbolDetails
-	err = json.Unmarshal(responseBody, &details)
-	if err != nil || len(details) == 0 {
+	var payload T
+	err = json.Unmarshal(responseBody, &payload)
+	if err != nil {
 		return nil, err
 	}
 
-	return &SymbolDetails{
-		Symbol:   details[0].Symbol,
-		Name:     details[0].CompanyName,
-		Industry: details[0].Industry,
-		Sector:   details[0].Sector,
-		IpoDate:  details[0].IpoDate,
-	}, nil
+	return &payload, nil
 }
