@@ -12,12 +12,12 @@ const (
 )
 
 type SymbolDetails struct {
-	Symbol            string
-	Name              string
-	Industry          string
-	Sector            string
-	IpoDate           string
-	SharesOutstanding int
+	Symbol            string `json:"symbol"`
+	Name              string `json:"name"`
+	Industry          string `json:"industry"`
+	Sector            string `json:"sector"`
+	IpoDate           string `json:"ipoDate"`
+	SharesOutstanding int    `json:"sharesOutstanding"`
 }
 
 type FMPStockSymbol struct {

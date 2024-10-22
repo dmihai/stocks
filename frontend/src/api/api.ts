@@ -18,6 +18,15 @@ export type TopGainer = {
   lastUpdated: string;
 };
 
+export type SymbolDetails = {
+  symbol?: string;
+  name?: string;
+  industry?: string;
+  sector?: string;
+  ipoDate?: string;
+  sharesOutstanding?: number;
+};
+
 type Login = {
   token: string;
   refreshToken: string;
@@ -85,6 +94,18 @@ export async function getTopGainers() {
       console.error(error);
     }
     return [];
+  }
+}
+
+export async function getSymbolDetails(symbol: string) {
+  try {
+    const response = await api.get<SymbolDetails>(`api/symbol-details/${symbol}`);
+    return response.data;
+  } catch (error) {
+    if (!axios.isAxiosError(error) || error.status !== 401) {
+      console.error(error);
+    }
+    return {};
   }
 }
 

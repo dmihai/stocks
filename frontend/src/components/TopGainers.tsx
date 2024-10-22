@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import Button from 'react-bootstrap/Button';
+
 import { getTopGainers, TopGainer } from '../api/api';
 import Number from './Number';
+import SymbolDetailsModal from './SymbolDetailsModal';
 
 type Props = {
   isLive: boolean;
@@ -8,6 +11,7 @@ type Props = {
 
 function TopGainers(props: Props) {
   const [topGainers, setTopGainers] = useState<TopGainer[]>([]);
+  const [selectedSymbol, setSelectedSymbol] = useState('');
 
   useEffect(() => {
     if (props.isLive) {
@@ -50,7 +54,15 @@ function TopGainers(props: Props) {
         <tbody className="table-group-divider">
           {topGainers.map((topGainer) => (
             <tr key={topGainer.symbol}>
-              <td>{topGainer.symbol}</td>
+              <td>
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => setSelectedSymbol(topGainer.symbol)}
+                >
+                  {topGainer.symbol}
+                </Button>
+              </td>
               <td className="text-end">
                 <Number value={topGainer.percentChanged} />
               </td>
@@ -71,6 +83,10 @@ function TopGainers(props: Props) {
           ))}
         </tbody>
       </table>
+      <SymbolDetailsModal
+        symbol={selectedSymbol}
+        handleClose={() => setSelectedSymbol('')}
+      />
     </div>
   );
 }
