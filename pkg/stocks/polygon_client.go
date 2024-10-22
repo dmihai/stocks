@@ -11,6 +11,11 @@ import (
 	"github.com/dmihai/stocks/pkg/data"
 )
 
+const (
+	polygonStatusOK       = "OK"
+	polygonStatusNotFound = "NOT_FOUND"
+)
+
 type polygon struct {
 	apiURL string
 	apiKey string
@@ -41,14 +46,14 @@ func (p *polygon) GetAllRealtimePrices() ([]data.Intraday, error) {
 func (p *polygon) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
 	endpoint := fmt.Sprintf("v3/reference/tickers/%s", symbol)
 
-	details, err := getPolygonResponse[PolygonSymbolDetails](p, endpoint)
+	details, err := getPolygonResponse[PolygonSymbolDetails](p, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO not found response
 	if details == nil {
-		return nil, err
+		return nil, nil
 	}
 
 	return &SymbolDetails{
@@ -59,12 +64,21 @@ func (p *polygon) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
 	}, nil
 }
 
-func getPolygonResponse[T any](p *polygon, endpoint string) (*T, error) {
+func getPolygonResponse[T any](p *polygon, endpoint string, params map[string]string) (*T, error) {
 	url := fmt.Sprintf("%s/%s", p.apiURL, endpoint)
 
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		query := request.URL.Query()
+		for param, value := range params {
+			query.Add(param, value)
+		}
+
+		request.URL.RawQuery = query.Encode()
 	}
 
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", p.apiKey))
@@ -86,5 +100,12 @@ func getPolygonResponse[T any](p *polygon, endpoint string) (*T, error) {
 		return nil, err
 	}
 
-	return &payload.Results, nil
+	switch payload.Status {
+	case polygonStatusOK:
+		return &payload.Results, nil
+	case polygonStatusNotFound:
+		return nil, nil
+	default:
+		return nil, fmt.Errorf("invalid API status")
+	}
 }

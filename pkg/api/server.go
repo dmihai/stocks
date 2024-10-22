@@ -66,7 +66,12 @@ func (s *Server) getSymbolDetails(c *gin.Context) {
 
 	details, err := s.stocks.GetSymbolDetails(symbol)
 	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if details == nil {
+		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
 

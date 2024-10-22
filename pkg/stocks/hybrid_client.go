@@ -47,6 +47,10 @@ func (h *hybrid) GetSymbolDetails(symbol string) (*SymbolDetails, error) {
 		return nil, err
 	}
 
+	if fmpSymbol == nil || polygonSymbol == nil {
+		return nil, nil
+	}
+
 	return &SymbolDetails{
 		Symbol:            fmpSymbol.Symbol,
 		Name:              fmpSymbol.Name,
