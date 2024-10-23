@@ -30,7 +30,7 @@ type FMPStockSymbol struct {
 	YearLow           float64 `json:"yearLow"`
 	MarketCap         int     `json:"marketCap"`
 	Volume            int     `json:"volume"`
-	AvgVolume         int     `json:"avgVolume"`
+	AvgVolume         float64 `json:"avgVolume"`
 	Open              float64 `json:"open"`
 	PreviousClose     float64 `json:"previousClose"`
 	Exchange          string  `json:"exchange"`
