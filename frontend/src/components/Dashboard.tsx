@@ -3,7 +3,7 @@ import TopGainers from './TopGainers';
 import Navbar from './Navbar';
 
 function Dashboard() {
-  const [isLive, setLive] = useState(false);
+  const [isLive, setLive] = useState(true);
 
   return (
     <div>

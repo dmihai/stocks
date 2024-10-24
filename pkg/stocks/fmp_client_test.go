@@ -16,6 +16,82 @@ const (
 	apiKey = "secret-api-key"
 )
 
+func TestFMPGetAvailableSymbolsByExchange(t *testing.T) {
+	t.Run("successfully fetch symbols", func(t *testing.T) {
+		exchange := "NASDAQ"
+		endpoint := "/v3/symbol/"
+
+		expected := []map[string]any{
+			{
+				"symbol":            "AAPL",
+				"name":              "Apple Inc.",
+				"price":             230.35,
+				"marketCap":         3502264435000,
+				"exchange":          "NASDAQ",
+				"volume":            17202113,
+				"avgVolume":         50834700,
+				"open":              229.98,
+				"previousClose":     230.76,
+				"sharesOutstanding": 15204100000,
+				"timestamp":         1729792519,
+			},
+			{
+				"symbol":            "NFLX",
+				"name":              "Netflix, Inc.",
+				"price":             752.81,
+				"marketCap":         321794656980,
+				"exchange":          "NASDAQ",
+				"volume":            1366645,
+				"avgVolume":         3214039,
+				"open":              751.97,
+				"previousClose":     749.29,
+				"sharesOutstanding": 427458000,
+				"timestamp":         1729792507,
+			},
+			{
+				"symbol":            "AMZN",
+				"name":              "Amazon.com, Inc.",
+				"price":             186.5474,
+				"marketCap":         1957926891440,
+				"exchange":          "NASDAQ",
+				"volume":            12742507,
+				"avgVolume":         37979045,
+				"open":              185.25,
+				"previousClose":     184.71,
+				"sharesOutstanding": 10495600000,
+				"timestamp":         1729792524,
+			},
+		}
+
+		handler := func(w http.ResponseWriter, r *http.Request) {
+			query := strings.ReplaceAll(r.URL.Path, endpoint, "")
+
+			assert.Equal(t, exchange, query)
+			assert.Equal(t, http.MethodGet, r.Method)
+			assert.Equal(t, apiKey, r.URL.Query().Get("apikey"))
+
+			w.WriteHeader(http.StatusOK)
+			encoded, _ := json.Marshal(expected)
+			_, _ = w.Write(encoded)
+		}
+
+		server := newTestServer(endpoint, handler)
+		defer server.Close()
+
+		client := NewFMPClient(server.URL, apiKey)
+
+		actual, err := client.GetAvailableSymbolsByExchange(exchange)
+		require.NoError(t, err)
+
+		require.Len(t, actual, len(expected))
+		for i := 0; i < len(actual); i++ {
+			require.Equal(t, expected[0]["symbol"], actual[0].Name)
+			require.Equal(t, expected[0]["previousClose"], actual[0].PrevDayClose)
+			require.Equal(t, expected[0]["sharesOutstanding"], actual[0].Shares)
+		}
+	})
+}
+
 func TestFMPGetAllRealtimePrices(t *testing.T) {
 	t.Run("successfully fetch realtime prices", func(t *testing.T) {
 		timestamp := time.Now()
