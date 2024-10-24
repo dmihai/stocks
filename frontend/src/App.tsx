@@ -16,7 +16,7 @@ function App() {
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, []);
+  });
 
   if (!token) {
     return <Login setToken={setToken} setRefreshToken={setRefreshToken} />;
