@@ -14,7 +14,7 @@ function SymbolDetailsModal(props: Props) {
 
   useEffect(() => {
     setDetails({});
-    if (props.symbol != '') {
+    if (props.symbol !== '') {
       const fetchData = async () => {
         const details = await getSymbolDetails(props.symbol);
         setDetails(details);
